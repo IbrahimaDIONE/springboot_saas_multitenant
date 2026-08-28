@@ -1,0 +1,15 @@
+{
+  "info":{"name":"SaaS Multi-tenant - JWT Catalogue","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+  "variable":[{"key":"baseUrl","value":"http://localhost:8080"},{"key":"accessToken","value":""},{"key":"refreshToken","value":""},{"key":"categoryId","value":""},{"key":"productId","value":""}],
+  "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{accessToken}}","type":"string"}]},
+  "item":[
+    {"name":"Login client-a","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-a\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
+    {"name":"Session / tenant signé","request":{"method":"GET","url":"{{baseUrl}}/api/me"}},
+    {"name":"Lister catégories du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/categories"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();if(r.length)pm.collectionVariables.set('categoryId',r[0].id);"]}}]},
+    {"name":"Créer produit client-a","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"name\":\"Dock USB-C\",\"price\":129.90,\"stock\":10,\"imageUrl\":\"https://placehold.co/600x400?text=Dock\",\"categoryId\":\"{{categoryId}}\"}"},"url":"{{baseUrl}}/api/products"},"event":[{"listen":"test","script":{"exec":["pm.collectionVariables.set('productId',pm.response.json().id);"]}}]},
+    {"name":"Lister produits client-a","request":{"method":"GET","url":"{{baseUrl}}/api/products"}},
+    {"name":"Refresh avec rotation","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"refreshToken\":\"{{refreshToken}}\"}"},"url":"{{baseUrl}}/api/auth/refresh"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
+    {"name":"Login client-b (remplace le token)","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
+    {"name":"Client-b ne peut pas voir produit client-a","request":{"method":"GET","url":"{{baseUrl}}/api/products/{{productId}}"},"event":[{"listen":"test","script":{"exec":["pm.test('Produit étranger caché',()=>pm.expect(pm.response.code).to.eql(404));"]}}]}
+  ]
+}
