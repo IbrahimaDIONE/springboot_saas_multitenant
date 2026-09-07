@@ -4,10 +4,6 @@ import jakarta.persistence.*;
 
 import java.util.UUID;
 
-/**
- * Utilisateur technique rattaché à un tenant. Le mot de passe stocké est un hash BCrypt, jamais le
- * mot de passe en clair.
- */
 @Entity
 @Table(name = "app_users")
 public class TenantUser {
@@ -27,6 +23,15 @@ public class TenantUser {
 
     @Column(nullable = false)
     private boolean enabled;
+
+    @Column(length = 100)
+    private String nom;
+
+    @Column(length = 100)
+    private String prenom;
+
+    @Column(length = 150)
+    private String email;
 
     protected TenantUser() {}
 
@@ -52,5 +57,29 @@ public class TenantUser {
 
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
