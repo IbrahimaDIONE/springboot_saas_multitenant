@@ -1,15 +1,385 @@
 {
-  "info":{"name":"SaaS Multi-tenant - JWT Catalogue","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
-  "variable":[{"key":"baseUrl","value":"http://localhost:8080"},{"key":"accessToken","value":""},{"key":"refreshToken","value":""},{"key":"categoryId","value":""},{"key":"productId","value":""}],
-  "auth":{"type":"bearer","bearer":[{"key":"token","value":"{{accessToken}}","type":"string"}]},
-  "item":[
-    {"name":"Login client-a","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-a\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
-    {"name":"Session / tenant signé","request":{"method":"GET","url":"{{baseUrl}}/api/me"}},
-    {"name":"Lister catégories du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/categories"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();if(r.length)pm.collectionVariables.set('categoryId',r[0].id);"]}}]},
-    {"name":"Créer produit client-a","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"name\":\"Dock USB-C\",\"price\":129.90,\"stock\":10,\"imageUrl\":\"https://placehold.co/600x400?text=Dock\",\"categoryId\":\"{{categoryId}}\"}"},"url":"{{baseUrl}}/api/products"},"event":[{"listen":"test","script":{"exec":["pm.collectionVariables.set('productId',pm.response.json().id);"]}}]},
-    {"name":"Lister produits client-a","request":{"method":"GET","url":"{{baseUrl}}/api/products"}},
-    {"name":"Refresh avec rotation","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"refreshToken\":\"{{refreshToken}}\"}"},"url":"{{baseUrl}}/api/auth/refresh"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
-    {"name":"Login client-b (remplace le token)","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"},"event":[{"listen":"test","script":{"exec":["const r=pm.response.json();pm.collectionVariables.set('accessToken',r.accessToken);pm.collectionVariables.set('refreshToken',r.refreshToken);"]}}]},
-    {"name":"Client-b ne peut pas voir produit client-a","request":{"method":"GET","url":"{{baseUrl}}/api/products/{{productId}}"},"event":[{"listen":"test","script":{"exec":["pm.test('Produit étranger caché',()=>pm.expect(pm.response.code).to.eql(404));"]}}]}
+  "info": {
+    "name": "BiblioUniv - Auth & Profil",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Authentification JWT, profil utilisateur et contrôle d'accès par rôle (BiblioUniv)."
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "accessToken", "value": ""},
+    {"key": "refreshToken", "value": ""},
+    {"key": "categoryId", "value": ""},
+    {"key": "productId", "value": ""},
+    {"key": "etudiantId", "value": ""}
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
+  },
+  "item": [
+    {
+      "name": "Auth & Profil",
+      "item": [
+        {
+          "name": "Login client-a (ADMIN_PLATEFORME)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-a\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Login admin plateforme', () => pm.response.to.have.status(200));",
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Session /api/me (client-a)",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/me"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Rôles admin plateforme', () => {",
+                "  const r = pm.response.json();",
+                "  pm.expect(r.roles).to.include('ADMIN_PLATEFORME');",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "GET /api/profil (client-a)",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/profil"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Profil admin plateforme', () => {",
+                "  const r = pm.response.json();",
+                "  pm.expect(r.role).to.eql('ADMIN_PLATEFORME');",
+                "  pm.expect(r.username).to.eql('client-a');",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "PUT /api/profil (client-a)",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nom\":\"Admin\",\"prenom\":\"Plateforme\",\"email\":\"admin@bibliouniv.sn\"}"
+            },
+            "url": "{{baseUrl}}/api/profil"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Mise à jour profil', () => pm.response.to.have.status(200));"]}
+          }]
+        },
+        {
+          "name": "Login client-b (ADMIN_ETABLISSEMENT)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "GET /api/profil (client-b)",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/profil"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Profil admin établissement', () => {",
+                "  pm.expect(pm.response.json().role).to.eql('ADMIN_ETABLISSEMENT');",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login client-c (ETUDIANT)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-c\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "GET /api/profil (client-c)",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/profil"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Profil étudiant', () => {",
+                "  pm.expect(pm.response.json().role).to.eql('ETUDIANT');",
+                "});"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Refresh avec rotation",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"refreshToken\":\"{{refreshToken}}\"}"},
+            "url": "{{baseUrl}}/api/auth/refresh"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Contrôle d'accès par rôle",
+      "item": [
+        {
+          "name": "Login client-b (ADMIN_ETABLISSEMENT)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Admin établissement - créer catégorie",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\":\"Sciences\"}"},
+            "url": "{{baseUrl}}/api/categories"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Admin peut créer une catégorie', () => pm.response.to.have.status(201));",
+                "pm.collectionVariables.set('categoryId', pm.response.json().id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login client-c (ETUDIANT)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-c\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Étudiant - lister catégories (lecture OK)",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/categories"},
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Lecture autorisée', () => pm.response.to.have.status(200));"]}
+          }]
+        },
+        {
+          "name": "Étudiant - créer catégorie (interdit)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\":\"Interdit\"}"},
+            "url": "{{baseUrl}}/api/categories"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Écriture refusée', () => pm.expect(pm.response.code).to.eql(403));"]
+            }
+          }]
+        },
+        {
+          "name": "Login client-a (ADMIN_PLATEFORME)",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-a\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Admin plateforme - créer catégorie (interdit)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"name\":\"Plateforme\"}"},
+            "url": "{{baseUrl}}/api/categories"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Admin plateforme ne gère pas le catalogue', () => pm.expect(pm.response.code).to.eql(403));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Catalogue démo (multi-tenant)",
+      "item": [
+        {
+          "name": "Login client-a",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-a\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Lister catégories client-a",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/categories"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "if (r.length) pm.collectionVariables.set('categoryId', r[0].id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Login client-b",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Créer produit client-b",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Dock USB-C\",\"price\":129.90,\"stock\":10,\"imageUrl\":\"https://placehold.co/600x400?text=Dock\",\"categoryId\":\"{{categoryId}}\"}"
+            },
+            "url": "{{baseUrl}}/api/products"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.collectionVariables.set('productId', pm.response.json().id);"]
+            }
+          }]
+        },
+        {
+          "name": "Client-b ne peut pas voir produit d'un autre tenant",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/products/{{productId}}"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.test('Produit étranger caché', () => pm.expect(pm.response.code).to.eql(404));"]
+            }
+          }]
+        }
+      ]
+    }
   ]
 }

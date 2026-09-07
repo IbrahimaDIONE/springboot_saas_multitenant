@@ -8,6 +8,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -25,6 +26,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 /** API SaaS stateless protégée par JWT Bearer. */
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     private SecretKey key(String s) {
         return new SecretKeySpec(s.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
