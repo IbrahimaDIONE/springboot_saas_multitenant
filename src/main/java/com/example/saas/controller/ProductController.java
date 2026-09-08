@@ -23,8 +23,10 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> list(@RequestParam(required = false) String search) {
-        return service.findAll(search);
+    public List<ProductResponse> list(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) UUID categoryId) {
+        return service.findAll(search, categoryId);
     }
 
     @GetMapping("/{id}")

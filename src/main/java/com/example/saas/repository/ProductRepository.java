@@ -18,11 +18,15 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
         @Query("""
                         select p from Product p
                         where p.tenantId = :tenantId
+                            and (:categoryId is null or p.category.id = :categoryId)
                             and (lower(p.name) like lower(concat('%', :search, '%'))
                                      or lower(p.category.name) like lower(concat('%', :search, '%')))
                         order by p.name
                         """)
-        List<Product> searchByTenantId(@Param("tenantId") String tenantId, @Param("search") String search);
+        List<Product> searchByTenantId(
+                        @Param("tenantId") String tenantId,
+                        @Param("search") String search,
+                        @Param("categoryId") UUID categoryId);
 
     Optional<Product> findByIdAndTenantId(UUID id, String tenantId);
 }

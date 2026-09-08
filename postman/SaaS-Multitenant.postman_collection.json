@@ -334,7 +334,7 @@
         },
         {
           "name": "Rechercher un produit client-a",
-          "request": {"method": "GET", "url": "{{baseUrl}}/api/products?search=Clavier"},
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/products?search=Clavier&categoryId={{categoryId}}"},
           "event": [{
             "listen": "test",
             "script": {

@@ -10,6 +10,8 @@ public interface ProductService {
 
     List<ProductResponse> findAll(String search);
 
+    List<ProductResponse> findAll(String search, UUID categoryId);
+
     ProductResponse findById(UUID id);
 
     ProductResponse create(ProductRequest request);

@@ -55,7 +55,7 @@ class ProductServiceImplTest {
 
         @Test
         void shouldSearchProductsOnlyInsideAuthenticatedTenant() {
-                when(repository.searchByTenantId("tenant-a", "clavier"))
+                when(repository.searchByTenantId("tenant-a", "clavier", null))
                                 .thenReturn(
                                                 List.of(
                                                                 new Product(
@@ -67,8 +67,17 @@ class ProductServiceImplTest {
                                                                                 new Category("tenant-a", "Tech"))));
 
                 assertThat(service.findAll(" clavier ")).extracting("name").containsExactly("Clavier");
-                verify(repository).searchByTenantId("tenant-a", "clavier");
-                verify(repository, never()).searchByTenantId("tenant-b", "clavier");
+                                verify(repository).searchByTenantId("tenant-a", "clavier", null);
+                                verify(repository, never()).searchByTenantId("tenant-b", "clavier", null);
+        }
+
+        @Test
+        void shouldSearchProductsByCategoryInsideAuthenticatedTenant() {
+                UUID categoryId = UUID.randomUUID();
+                when(repository.searchByTenantId("tenant-a", "clavier", categoryId)).thenReturn(List.of());
+
+                assertThat(service.findAll("clavier", categoryId)).isEmpty();
+                verify(repository).searchByTenantId("tenant-a", "clavier", categoryId);
         }
 
     @Test

@@ -49,7 +49,16 @@ public class ProductServiceImpl implements ProductService {
         if (search == null || search.isBlank()) {
             return findAll();
         }
-        return repository.searchByTenantId(tenant(), search.trim()).stream()
+        return findAll(search, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductResponse> findAll(String search, UUID categoryId) {
+        if (search == null || search.isBlank()) {
+            return findAll();
+        }
+        return repository.searchByTenantId(tenant(), search.trim(), categoryId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }
