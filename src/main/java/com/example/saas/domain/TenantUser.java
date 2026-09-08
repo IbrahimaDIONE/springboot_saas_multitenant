@@ -82,4 +82,28 @@ public class TenantUser {
     public void setEmail(String email) {
         this.email = email;
     }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public static TenantUser newEtudiant(
+            String tenantId,
+            String username,
+            String passwordHash,
+            String nom,
+            String prenom,
+            String email) {
+        TenantUser user = new TenantUser();
+        user.id = UUID.randomUUID();
+        user.username = username;
+        user.passwordHash = passwordHash;
+        user.tenantId = tenantId;
+        user.role = "ETUDIANT";
+        user.enabled = false;
+        user.nom = nom;
+        user.prenom = prenom;
+        user.email = email;
+        return user;
+    }
 }
