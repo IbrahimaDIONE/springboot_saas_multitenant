@@ -55,10 +55,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> findAll(String search, UUID categoryId) {
-        if (search == null || search.isBlank()) {
+        String searchTerm = search == null ? "" : search.trim();
+        if (searchTerm.isEmpty() && categoryId == null) {
             return findAll();
         }
-        return repository.searchByTenantId(tenant(), search.trim(), categoryId).stream()
+        return repository.searchByTenantId(tenant(), searchTerm, categoryId).stream()
                 .map(mapper::toResponse)
                 .toList();
     }

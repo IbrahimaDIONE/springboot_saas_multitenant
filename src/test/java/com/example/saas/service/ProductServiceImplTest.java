@@ -74,10 +74,10 @@ class ProductServiceImplTest {
         @Test
         void shouldSearchProductsByCategoryInsideAuthenticatedTenant() {
                 UUID categoryId = UUID.randomUUID();
-                when(repository.searchByTenantId("tenant-a", "clavier", categoryId)).thenReturn(List.of());
+                when(repository.searchByTenantId("tenant-a", "", categoryId)).thenReturn(List.of());
 
-                assertThat(service.findAll("clavier", categoryId)).isEmpty();
-                verify(repository).searchByTenantId("tenant-a", "clavier", categoryId);
+                assertThat(service.findAll("", categoryId)).isEmpty();
+                verify(repository).searchByTenantId("tenant-a", "", categoryId);
         }
 
     @Test
