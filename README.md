@@ -63,6 +63,12 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-tenants.p
 
 Le script teste login JWT, trois tenants, produits isolés, catégorie, image, création, accès étranger en `404` et rotation du refresh token.
 
+La gestion des étudiants est disponible pour `ADMIN_ETABLISSEMENT` :
+
+- `GET /api/etudiants` liste les étudiants du tenant courant ;
+- `POST /api/etudiants` crée un compte étudiant inactif ;
+- `POST /api/etudiants/{id}/activation` active un compte étudiant.
+
 ## Postman
 
 Importez [SaaS-Multitenant.postman_collection.json](postman/SaaS-Multitenant.postman_collection.json). Exécutez les requêtes dans l'ordre : les scripts Postman enregistrent automatiquement `accessToken`, `refreshToken`, `categoryId` et `productId`.

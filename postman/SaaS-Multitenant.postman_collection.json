@@ -352,6 +352,20 @@
           }]
         },
         {
+          "name": "Lister catégories client-b",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/categories"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Catégories du tenant B', () => pm.response.to.have.status(200));",
+                "const r = pm.response.json();",
+                "if (r.length) pm.collectionVariables.set('categoryId', r[0].id);"
+              ]
+            }
+          }]
+        },
+        {
           "name": "Créer produit client-b",
           "request": {
             "method": "POST",
@@ -370,12 +384,96 @@
           }]
         },
         {
-          "name": "Client-b ne peut pas voir produit d'un autre tenant",
+          "name": "Login client-a pour vérifier l'isolation",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-a\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"]
+            }
+          }]
+        },
+        {
+          "name": "Client-a ne peut pas voir le produit de client-b",
           "request": {"method": "GET", "url": "{{baseUrl}}/api/products/{{productId}}"},
           "event": [{
             "listen": "test",
             "script": {
               "exec": ["pm.test('Produit étranger caché', () => pm.expect(pm.response.code).to.eql(404));"]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Gestion des étudiants",
+      "item": [
+        {
+          "name": "Login client-b admin établissement",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": ["pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"]
+            }
+          }]
+        },
+        {
+          "name": "Lister les étudiants du tenant B",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/etudiants"},
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Listing étudiants autorisé', () => pm.response.to.have.status(200));"]}
+          }]
+        },
+        {
+          "name": "Créer un étudiant inactif",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"{{studentUsername}}\",\"password\":\"password\",\"nom\":\"Demo\",\"prenom\":\"Etudiant\",\"email\":\"etudiant.demo@example.com\"}"
+            },
+            "url": "{{baseUrl}}/api/etudiants"
+          },
+          "event": [{
+            "listen": "prerequest",
+            "script": {"exec": ["pm.variables.set('studentUsername', 'etudiant-' + Date.now());"]}
+          }, {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Étudiant créé inactif', () => pm.response.to.have.status(201));",
+                "const r = pm.response.json();",
+                "pm.expect(r.enabled).to.eql(false);",
+                "pm.collectionVariables.set('etudiantId', r.id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Activer l'étudiant",
+          "request": {"method": "POST", "url": "{{baseUrl}}/api/etudiants/{{etudiantId}}/activation"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Étudiant activé', () => pm.response.to.have.status(200));",
+                "pm.expect(pm.response.json().enabled).to.eql(true);"
+              ]
             }
           }]
         }
