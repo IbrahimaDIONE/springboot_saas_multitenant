@@ -12,6 +12,7 @@ CREATE TABLE etudiants (
 -- Mise à jour des comptes de test existants avec les nouveaux rôles BiblioUniv
 UPDATE app_users SET role = 'ADMIN_PLATEFORME', nom = 'Admin', prenom = 'Plateforme', email = 'admin@bibliouniv.sn' WHERE username = 'client-a';
 UPDATE app_users SET role = 'ADMIN_ETABLISSEMENT', nom = 'Diop', prenom = 'Awa', email = 'admin@ucad.sn' WHERE username = 'client-b';
+UPDATE app_users SET role = 'ETUDIANT', nom = 'Fall', prenom = 'Moussa', email = 'etudiant@ucad.sn' WHERE username = 'client-c';
 UPDATE app_users SET role = 'ETUDIANT', tenant_id = 'tenant-b', nom = 'Fall', prenom = 'Moussa', email = 'etudiant@ucad.sn' WHERE username = 'client-c';
 
 INSERT INTO etudiants (id, utilisateur_id)
