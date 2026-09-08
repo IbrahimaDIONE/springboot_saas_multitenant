@@ -333,6 +333,21 @@
           }]
         },
         {
+          "name": "Rechercher un produit client-a",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/products?search=Clavier"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Recherche catalogue autorisée', () => pm.response.to.have.status(200));",
+                "const products = pm.response.json();",
+                "pm.expect(products).to.have.lengthOf(1);",
+                "pm.expect(products[0].name).to.eql('Clavier Acme');"
+              ]
+            }
+          }]
+        },
+        {
           "name": "Login client-b",
           "auth": {"type": "noauth"},
           "request": {
