@@ -24,7 +24,7 @@ Authorization: Bearer <accessToken>
 |---|---|---|
 | `client-a` | `password` | `tenant-a` |
 | `client-b` | `password` | `tenant-b` |
-| `client-c` | `password` | `tenant-c` |
+| `client-c` | `password` | `tenant-b` |
 
 ## Catalogue
 
@@ -53,7 +53,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-Flyway applique V1, V2 et `V3__jwt_refresh_and_categories.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
+Flyway applique V1 à V4, dont `V3__jwt_refresh_and_categories.sql` et `V4__biblio_users_etudiants.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
 
 ## Test automatique
 
@@ -79,8 +79,8 @@ Importez [SaaS-Multitenant.postman_collection.json](postman/SaaS-Multitenant.pos
 config/      SecurityFilterChain, JWT encoder/decoder, audit JPA
 security/    UserDetails, JwtService et erreurs 401/403
 tenant/      extraction du claim tenant_id et contexte de requête
-domain/      TenantUser, RefreshToken, Category, Product, Project
-controller/  Auth, Session, Category, Product et Project
+domain/      TenantUser, RefreshToken, Etudiant, Category, Product, Project
+controller/  Auth, Session, Profil, Etudiant, Category, Product et Project
 service/     transactions et règles d'isolation
 repository/  requêtes systématiquement filtrées par tenant
 dto/         contrats sans tenantId modifiable
