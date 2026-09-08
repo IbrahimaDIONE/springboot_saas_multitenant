@@ -87,6 +87,7 @@ public class TenantUser {
         this.enabled = enabled;
     }
 
+    /** Compte étudiant créé par l'admin d'établissement, inactif jusqu'à activation. */
     public static TenantUser newEtudiant(
             String tenantId,
             String username,
