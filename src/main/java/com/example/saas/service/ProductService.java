@@ -8,6 +8,8 @@ import java.util.*;
 public interface ProductService {
     List<ProductResponse> findAll();
 
+    List<ProductResponse> findAll(String search);
+
     ProductResponse findById(UUID id);
 
     ProductResponse create(ProductRequest request);

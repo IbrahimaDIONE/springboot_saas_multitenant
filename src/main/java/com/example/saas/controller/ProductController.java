@@ -23,8 +23,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<ProductResponse> list() {
-        return service.findAll();
+    public List<ProductResponse> list(@RequestParam(required = false) String search) {
+        return service.findAll(search);
     }
 
     @GetMapping("/{id}")

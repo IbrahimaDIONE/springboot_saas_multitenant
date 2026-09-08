@@ -30,6 +30,7 @@ Authorization: Bearer <accessToken>
 
 - CRUD `/api/categories` filtré par tenant ;
 - CRUD `/api/products` filtré par tenant ;
+- recherche `GET /api/products?search=mot-cle` sur le nom du produit ou de sa catégorie ;
 - relation JPA `Product ManyToOne Category` ;
 - une catégorie d'un autre tenant est traitée comme inexistante ;
 - `imageUrl` accepte uniquement une URL HTTP(S) et évite de stocker l'image binaire dans PostgreSQL.

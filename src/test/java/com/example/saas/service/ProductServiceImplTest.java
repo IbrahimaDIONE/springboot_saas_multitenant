@@ -53,6 +53,24 @@ class ProductServiceImplTest {
         verify(repository, never()).findAll();
     }
 
+        @Test
+        void shouldSearchProductsOnlyInsideAuthenticatedTenant() {
+                when(repository.searchByTenantId("tenant-a", "clavier"))
+                                .thenReturn(
+                                                List.of(
+                                                                new Product(
+                                                                                "tenant-a",
+                                                                                "Clavier",
+                                                                                new BigDecimal("79.90"),
+                                                                                5,
+                                                                                "https://example.com/a.jpg",
+                                                                                new Category("tenant-a", "Tech"))));
+
+                assertThat(service.findAll(" clavier ")).extracting("name").containsExactly("Clavier");
+                verify(repository).searchByTenantId("tenant-a", "clavier");
+                verify(repository, never()).searchByTenantId("tenant-b", "clavier");
+        }
+
     @Test
     void shouldCreateProductWithAuthenticatedTenant() {
         when(repository.save(any(Product.class)))

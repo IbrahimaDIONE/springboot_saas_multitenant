@@ -45,6 +45,17 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<ProductResponse> findAll(String search) {
+        if (search == null || search.isBlank()) {
+            return findAll();
+        }
+        return repository.searchByTenantId(tenant(), search.trim()).stream()
+                .map(mapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public ProductResponse findById(UUID id) {
         return mapper.toResponse(findEntity(id));
     }
