@@ -1,6 +1,6 @@
-# Starter SaaS sécurisé, JWT et multi-tenant
+# BiblioUniv sécurisé, JWT et multi-tenant
 
-API pédagogique Java 21 / Spring Boot 4.1 / Spring Security / PostgreSQL / Flyway. Trois clients utilisent la même base, mais chaque catégorie, produit et projet est isolé par `tenant_id`.
+API Java 21 / Spring Boot 4 / Spring Security / PostgreSQL / Flyway. Trois clients utilisent la même base, mais chaque ouvrage, filière, niveau et projet est isolé par `tenant_id`.
 
 ## Sécurité
 
@@ -26,23 +26,24 @@ Authorization: Bearer <accessToken>
 | `client-b` | `password` | `tenant-b` |
 | `client-c` | `password` | `tenant-b` |
 
-## Catalogue
+## Bibliothèque
 
-- CRUD `/api/categories` filtré par tenant ;
-- CRUD `/api/products` filtré par tenant ;
-- relation JPA `Product ManyToOne Category` ;
-- une catégorie d'un autre tenant est traitée comme inexistante ;
-- `imageUrl` accepte uniquement une URL HTTP(S) et évite de stocker l'image binaire dans PostgreSQL.
+- CRUD `/api/filieres` filtré par tenant ;
+- CRUD `/api/niveaux` filtré par tenant ;
+- CRUD `/api/ouvrages` filtré par tenant ;
+- recherche `GET /api/ouvrages?search=mot-cle&filiereId=...&niveauId=...` sur le titre, l’auteur ou le résumé ;
+- relation JPA `Ouvrage ManyToOne Filiere` et `Ouvrage ManyToOne Niveau` ;
+- une filière ou un niveau d’un autre tenant est traité comme inexistant.
 
-Exemple Produit :
+Exemple Ouvrage :
 
 ```json
 {
-  "name": "Dock USB-C",
-  "price": 129.90,
-  "stock": 10,
-  "imageUrl": "https://placehold.co/600x400?text=Dock",
-  "categoryId": "30000000-0000-0000-0000-000000000001"
+  "titre": "Algorithmique fondamentale",
+  "auteur": "Thomas Cormen",
+  "resume": "Introduction aux algorithmes et à leur analyse.",
+  "filiereId": "31000000-0000-0000-0000-000000000001",
+  "niveauId": "32000000-0000-0000-0000-000000000001"
 }
 ```
 
@@ -53,7 +54,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-Flyway applique V1 à V4, dont `V3__jwt_refresh_and_categories.sql` et `V4__biblio_users_etudiants.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
+Flyway applique V1 à V5, dont `V4__biblio_users_etudiants.sql` et `V5__biblio_ouvrages_filieres_niveaux.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
 
 ## Test automatique
 
@@ -61,7 +62,7 @@ Flyway applique V1 à V4, dont `V3__jwt_refresh_and_categories.sql` et `V4__bibl
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-tenants.ps1
 ```
 
-Le script teste login JWT, trois tenants, produits isolés, catégorie, image, création, accès étranger en `404` et rotation du refresh token.
+Le script teste login JWT, trois tenants, ouvrages isolés, filière, niveau, création, accès étranger en `404` et rotation du refresh token.
 
 La gestion des étudiants est disponible pour `ADMIN_ETABLISSEMENT` :
 
@@ -79,8 +80,8 @@ Importez [SaaS-Multitenant.postman_collection.json](postman/SaaS-Multitenant.pos
 config/      SecurityFilterChain, JWT encoder/decoder, audit JPA
 security/    UserDetails, JwtService et erreurs 401/403
 tenant/      extraction du claim tenant_id et contexte de requête
-domain/      TenantUser, RefreshToken, Etudiant, Category, Product, Project
-controller/  Auth, Session, Profil, Etudiant, Category, Product et Project
+domain/      TenantUser, RefreshToken, Etudiant, Filiere, Niveau, Ouvrage, Project
+controller/  Auth, Session, Profil, Etudiant, Filiere, Niveau, Ouvrage et Project
 service/     transactions et règles d'isolation
 repository/  requêtes systématiquement filtrées par tenant
 dto/         contrats sans tenantId modifiable
