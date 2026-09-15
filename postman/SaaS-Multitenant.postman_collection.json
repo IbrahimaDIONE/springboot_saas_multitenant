@@ -2,7 +2,7 @@
   "info": {
     "name": "BiblioUniv - Auth & Profil",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Authentification JWT, profil utilisateur et contrôle d'accès par rôle (BiblioUniv)."
+    "description": "Authentification JWT, profil utilisateur, contrôle d'accès par rôle et gestion des établissements (BiblioUniv)."
   },
   "variable": [
     {"key": "baseUrl", "value": "http://localhost:8080"},
@@ -10,7 +10,8 @@
     {"key": "refreshToken", "value": ""},
     {"key": "categoryId", "value": ""},
     {"key": "productId", "value": ""},
-    {"key": "etudiantId", "value": ""}
+    {"key": "etudiantId", "value": ""},
+    {"key": "establishmentCode", "value": ""}
   ],
   "auth": {
     "type": "bearer",
@@ -488,6 +489,136 @@
               "exec": [
                 "pm.test('Étudiant activé', () => pm.response.to.have.status(200));",
                 "pm.expect(pm.response.json().enabled).to.eql(true);"
+              ]
+            }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Gestion des établissements (ADMIN_PLATEFORME)",
+      "item": [
+        {
+          "name": "Login plateforme",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-a\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Login plateforme réussi', () => pm.response.to.have.status(200));",
+                "const r = pm.response.json();",
+                "pm.collectionVariables.set('accessToken', r.accessToken);",
+                "pm.collectionVariables.set('refreshToken', r.refreshToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Créer un établissement et son premier administrateur",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"code\":\"{{establishmentCode}}\",\"nom\":\"Etablissement Postman\",\"statut\":\"ACTIF\",\"parametres\":{\"dureeEmpruntJours\":\"14\"},\"administrateur\":{\"username\":\"{{establishmentCode}}-admin\",\"password\":\"password123\",\"nom\":\"Admin\",\"prenom\":\"Postman\",\"email\":\"postman@example.com\"}}"
+            },
+            "url": "{{baseUrl}}/api/etablissements"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {"exec": ["pm.collectionVariables.set('establishmentCode', 'postman-' + Date.now());"]}
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Etablissement créé', () => pm.response.to.have.status(201));",
+                  "pm.expect(pm.response.json().code).to.eql(pm.collectionVariables.get('establishmentCode'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lister les établissements",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/etablissements"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Liste établissements accessible', () => pm.response.to.have.status(200));",
+                "const codes = pm.response.json().map(e => e.code);",
+                "pm.expect(codes).to.include(pm.collectionVariables.get('establishmentCode'));"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Modifier les paramètres d'un établissement",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"code\":\"{{establishmentCode}}\",\"nom\":\"Etablissement Postman modifié\",\"statut\":\"ACTIF\",\"parametres\":{\"dureeEmpruntJours\":\"21\"}}"
+            },
+            "url": "{{baseUrl}}/api/etablissements/{{establishmentCode}}"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {"exec": ["pm.test('Etablissement modifié', () => pm.response.to.have.status(200));"]}
+          }]
+        },
+        {
+          "name": "Désactiver puis réactiver l'établissement",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/etablissements/{{establishmentCode}}/statut?valeur=INACTIF"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Etablissement désactivé', () => pm.response.to.have.status(200));",
+                "pm.expect(pm.response.json().statut).to.eql('INACTIF');"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Réactiver l'établissement",
+          "request": {
+            "method": "PATCH",
+            "url": "{{baseUrl}}/api/etablissements/{{establishmentCode}}/statut?valeur=ACTIF"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Etablissement réactivé', () => pm.response.to.have.status(200));",
+                "pm.expect(pm.response.json().statut).to.eql('ACTIF');"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Statistiques globales",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/etablissements/statistiques"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Statistiques plateforme accessibles', () => pm.response.to.have.status(200));",
+                "const r = pm.response.json();",
+                "pm.expect(r.etablissements).to.be.above(0);",
+                "pm.expect(r.etablissementsActifs).to.be.above(0);"
               ]
             }
           }]
