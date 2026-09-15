@@ -22,6 +22,7 @@ import java.util.*;
 public class AuthService {
     private final AuthenticationManager manager;
     private final TenantUserRepository users;
+    private final EtablissementRepository etablissements;
     private final RefreshTokenRepository tokens;
     private final JwtService jwt;
     private final Duration ttl;
@@ -30,11 +31,13 @@ public class AuthService {
     public AuthService(
             AuthenticationManager m,
             TenantUserRepository u,
+            EtablissementRepository e,
             RefreshTokenRepository t,
             JwtService j,
             @Value("${app.security.jwt.refresh-token-days}") long d) {
         manager = m;
         users = u;
+        etablissements = e;
         tokens = t;
         jwt = j;
         ttl = Duration.ofDays(d);
@@ -54,6 +57,11 @@ public class AuthService {
                                 () ->
                                         new InvalidTokenException(
                                                 "Refresh token invalide ou expiré"));
+        if (!etablissements.findByCode(old.getUser().getTenantId())
+                .map(etablissement -> "ACTIF".equals(etablissement.getStatut()))
+                .orElse(false)) {
+            throw new InvalidTokenException("Etablissement désactivé");
+        }
         old.revoke();
         return issue(old.getUser());
     }

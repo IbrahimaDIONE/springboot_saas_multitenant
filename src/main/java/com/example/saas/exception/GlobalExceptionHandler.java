@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,16 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request, Map.of());
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> forbidden(AccessDeniedException exception, HttpServletRequest request) {
+        return build(
+                HttpStatus.FORBIDDEN,
+                "FORBIDDEN",
+                "Accès refusé pour ce rôle",
+                request,
+                Map.of());
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiError> conflict(
             DataIntegrityViolationException exception, HttpServletRequest request) {
@@ -47,6 +58,17 @@ public class GlobalExceptionHandler {
                 request,
                 Map.of());
     }
+
+        @ExceptionHandler(IllegalArgumentException.class)
+        ResponseEntity<ApiError> badRequest(
+                        IllegalArgumentException exception, HttpServletRequest request) {
+                return build(
+                                HttpStatus.BAD_REQUEST,
+                                "INVALID_REQUEST",
+                                exception.getMessage(),
+                                request,
+                                Map.of());
+        }
 
     @ExceptionHandler(InvalidTenantException.class)
     ResponseEntity<ApiError> invalidTenant(
