@@ -107,4 +107,24 @@ public class TenantUser {
         user.email = email;
         return user;
     }
+
+    public static TenantUser newAdminEtablissement(
+            String tenantId,
+            String username,
+            String passwordHash,
+            String nom,
+            String prenom,
+            String email) {
+        TenantUser user = new TenantUser();
+        user.id = UUID.randomUUID();
+        user.username = username;
+        user.passwordHash = passwordHash;
+        user.tenantId = tenantId;
+        user.role = "ADMIN_ETABLISSEMENT";
+        user.enabled = true;
+        user.nom = nom;
+        user.prenom = prenom;
+        user.email = email;
+        return user;
+    }
 }

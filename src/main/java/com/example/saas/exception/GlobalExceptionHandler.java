@@ -59,6 +59,17 @@ public class GlobalExceptionHandler {
                 Map.of());
     }
 
+        @ExceptionHandler(IllegalArgumentException.class)
+        ResponseEntity<ApiError> badRequest(
+                        IllegalArgumentException exception, HttpServletRequest request) {
+                return build(
+                                HttpStatus.BAD_REQUEST,
+                                "INVALID_REQUEST",
+                                exception.getMessage(),
+                                request,
+                                Map.of());
+        }
+
     @ExceptionHandler(InvalidTenantException.class)
     ResponseEntity<ApiError> invalidTenant(
             InvalidTenantException exception, HttpServletRequest request) {

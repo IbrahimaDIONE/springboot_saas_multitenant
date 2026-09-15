@@ -54,7 +54,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-Flyway applique V1 à V5, dont `V4__biblio_users_etudiants.sql` et `V5__biblio_ouvrages_filieres_niveaux.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
+Flyway applique V1 à V6, dont `V4__biblio_users_etudiants.sql`, `V5__biblio_ouvrages_filieres_niveaux.sql` et `V6__biblio_etablissements.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
 
 ## Test automatique
 
@@ -69,6 +69,14 @@ La gestion des étudiants est disponible pour `ADMIN_ETABLISSEMENT` :
 - `GET /api/etudiants` liste les étudiants du tenant courant ;
 - `POST /api/etudiants` crée un compte étudiant inactif ;
 - `POST /api/etudiants/{id}/activation` active un compte étudiant.
+
+La gestion des établissements est disponible pour `ADMIN_PLATEFORME` :
+
+- `POST /api/etablissements` crée un établissement et son premier administrateur ;
+- `GET /api/etablissements` liste les établissements hébergés ;
+- `PUT /api/etablissements/{code}` modifie ses informations et paramètres ;
+- `PATCH /api/etablissements/{code}/statut?valeur=ACTIF|INACTIF` active ou désactive un établissement ;
+- `GET /api/etablissements/statistiques` retourne les statistiques globales de la plateforme.
 
 ## Postman
 
