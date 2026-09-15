@@ -9,4 +9,8 @@ import java.util.*;
 /** Repository utilisé uniquement par Spring Security pour charger un compte. */
 public interface TenantUserRepository extends JpaRepository<TenantUser, UUID> {
     Optional<TenantUser> findByUsernameIgnoreCase(String username);
+
+    List<TenantUser> findAllByTenantIdAndRoleOrderByNomAscPrenomAsc(String tenantId, String role);
+
+    Optional<TenantUser> findByIdAndTenantIdAndRole(UUID id, String tenantId, String role);
 }
