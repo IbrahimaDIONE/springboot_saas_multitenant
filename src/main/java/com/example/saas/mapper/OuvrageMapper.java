@@ -10,6 +10,7 @@ public class OuvrageMapper {
         return new OuvrageResponse(ouvrage.getId(), ouvrage.getTitre(), ouvrage.getAuteur(), ouvrage.getResume(),
                 new FiliereResponse(ouvrage.getFiliere().getId(), ouvrage.getFiliere().getNom()),
                 new NiveauResponse(ouvrage.getNiveau().getId(), ouvrage.getNiveau().getNom()),
+                ouvrage.isActif(),
                 ouvrage.getCreatedAt(), ouvrage.getUpdatedAt());
     }
 }
