@@ -1,7 +1,8 @@
 package com.example.saas.dto;
 
-public record ProfilRequest(String nom, String prenom, String email) {}
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public record ProfilRequest(
         @NotBlank @Size(max = 100) String nom,
