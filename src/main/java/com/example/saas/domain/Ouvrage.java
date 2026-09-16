@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "ouvrages")
 public class Ouvrage extends BaseTenantEntity {
-
     @Column(nullable = false, length = 200)
     private String titre;
 
@@ -15,23 +14,39 @@ public class Ouvrage extends BaseTenantEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String resume;
 
-    @Column(name = "url_fichier", length = 2048)
-    private String urlFichier;
-
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "filiere_id")
+    @JoinColumn(name = "filiere_id", nullable = false)
     private Filiere filiere;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "niveau_id")
+    @JoinColumn(name = "niveau_id", nullable = false)
     private Niveau niveau;
 
     protected Ouvrage() {}
 
-    public String getTitre()      { return titre; }
-    public String getAuteur()     { return auteur; }
-    public String getResume()     { return resume; }
-    public String getUrlFichier() { return urlFichier; }
-    public Filiere getFiliere()   { return filiere; }
-    public Niveau getNiveau()     { return niveau; }
+    public Ouvrage(String tenantId, String titre, String auteur, String resume, Filiere filiere, Niveau niveau) {
+        super(tenantId);
+        update(titre, auteur, resume, filiere, niveau);
+    }
+
+    public void update(String titre, String auteur, String resume, Filiere filiere, Niveau niveau) {
+        if (titre == null || titre.isBlank()
+                || auteur == null || auteur.isBlank()
+                || resume == null
+                || filiere == null
+                || niveau == null) {
+            throw new IllegalArgumentException("Ouvrage invalide");
+        }
+        this.titre = titre.trim();
+        this.auteur = auteur.trim();
+        this.resume = resume.trim();
+        this.filiere = filiere;
+        this.niveau = niveau;
+    }
+
+    public String getTitre() { return titre; }
+    public String getAuteur() { return auteur; }
+    public String getResume() { return resume; }
+    public Filiere getFiliere() { return filiere; }
+    public Niveau getNiveau() { return niveau; }
 }

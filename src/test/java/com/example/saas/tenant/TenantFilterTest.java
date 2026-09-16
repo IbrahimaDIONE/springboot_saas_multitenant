@@ -36,7 +36,7 @@ class TenantFilterTest {
 
     @Test
     void shouldExposeAuthenticatedTenantDuringRequestThenClearIt() throws Exception {
-        when(request.getRequestURI()).thenReturn("/api/products");
+        when(request.getRequestURI()).thenReturn("/api/ouvrages");
         var principal =
                 Jwt.withTokenValue("test-token")
                         .header("alg", "none")
@@ -62,7 +62,7 @@ class TenantFilterTest {
 
     @Test
     void shouldRejectRequestWithoutTenantPrincipal() throws Exception {
-        when(request.getRequestURI()).thenReturn("/api/products");
+        when(request.getRequestURI()).thenReturn("/api/ouvrages");
 
         new TenantFilter(resolver).doFilter(request, response, chain);
 
