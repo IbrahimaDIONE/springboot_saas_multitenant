@@ -29,4 +29,6 @@ public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
             @Param("niveauId") UUID niveauId);
 
     Optional<Ouvrage> findByIdAndTenantId(UUID id, String tenantId);
+
+        long countByTenantId(String tenantId);
 }

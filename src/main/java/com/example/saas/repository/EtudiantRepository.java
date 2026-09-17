@@ -15,4 +15,6 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, UUID> {
     Optional<Etudiant> findByIdAndUtilisateur_TenantId(UUID id, String tenantId);
 
     Optional<Etudiant> findByUtilisateur_Id(UUID utilisateurId);
+
+    long countByUtilisateur_TenantId(String tenantId);
 }

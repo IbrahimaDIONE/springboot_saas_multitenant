@@ -6,6 +6,22 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57559378",
     "_collection_link": "https://go.postman.co/collection/57559378-75667917-e47b-42de-ac28-edc793ed0e7b?source=collection_link"
+    "description": "Authentification JWT, profil utilisateur, contrôle d'accès par rôle et gestion des établissements (BiblioUniv)."
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "accessToken", "value": ""},
+    {"key": "refreshToken", "value": ""},
+    {"key": "categoryId", "value": ""},
+    {"key": "productId", "value": ""},
+    {"key": "etudiantId", "value": ""},
+    {"key": "establishmentCode", "value": ""},
+    {"key": "ouvrageId", "value": "20000000-0000-0000-0000-000000000003"},
+    {"key": "empruntId", "value": ""}
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]
   },
   "item": [
     {
@@ -1338,168 +1354,147 @@
       ]
     },
     {
-      "name": "Ouvrages (ADMIN_ETABLISSEMENT / ETUDIANT)",
+      "name": "Emprunt et lecture numérique (ETUDIANT)",
       "item": [
         {
-          "name": "Login client-c",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "const r = pm.response.json();\r",
-                  "pm.collectionVariables.set('accessToken', r.accessToken);\r",
-                  "pm.collectionVariables.set('refreshToken', r.refreshToken);"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            }
-          ],
+          "name": "Login étudiant client-c",
+          "auth": {"type": "noauth"},
           "request": {
             "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\"username\":\"client-c\",\"password\":\"password\"}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-c\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Login étudiant réussi', () => pm.response.to.have.status(200));",
+                "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
               ]
             }
-          },
-          "response": []
+          }]
         },
         {
-          "name": "Étudiant - lister les ouvrages",
+          "name": "Emprunter un ouvrage numérique",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"ouvrageId\":\"{{ouvrageId}}\"}"},
+            "url": "{{baseUrl}}/api/emprunts"
           },
-          "response": []
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Emprunt créé', () => pm.response.to.have.status(201));",
+                "const r = pm.response.json();",
+                "pm.expect(r.ouvrageId).to.eql(pm.collectionVariables.get('ouvrageId'));",
+                "pm.expect(r.statut).to.eql('ACTIF');",
+                "pm.collectionVariables.set('empruntId', r.id);"
+              ]
+            }
+          }]
         },
         {
-          "name": "Login client-b (admin)",
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
+          "name": "Lister mes emprunts",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/emprunts/mes-emprunts"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Mes emprunts accessibles', () => pm.response.to.have.status(200));",
+                "const ids = pm.response.json().map(e => e.id);",
+                "pm.expect(ids).to.include(pm.collectionVariables.get('empruntId'));"
+              ]
+            }
+          }]
         },
         {
-          "name": "Lister les filières",
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
+          "name": "Consulter le détail de mon emprunt",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/emprunts/{{empruntId}}"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Détail emprunt accessible', () => pm.response.to.have.status(200));",
+                "pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('empruntId'));"
+              ]
+            }
+          }]
         },
         {
-          "name": "Lister les niveaux",
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
-        },
-        {
-          "name": "Admin établissement - créer un ouvrage",
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
-        },
-        {
-          "name": "Admin établissement - archiver l'ouvrage",
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
+          "name": "Lire l'ouvrage emprunté en ligne",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/emprunts/{{empruntId}}/lire"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Lecture en ligne autorisée', () => pm.response.to.have.status(200));",
+                "pm.expect(pm.response.json().empruntId).to.eql(pm.collectionVariables.get('empruntId'));",
+                "pm.expect(pm.response.json().ouvrageId).to.eql(pm.collectionVariables.get('ouvrageId'));"
+              ]
+            }
+          }]
         }
       ]
-    }
-  ],
-  "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{accessToken}}",
-        "type": "string"
-      }
-    ]
-  },
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
     },
     {
-      "listen": "test",
-      "script": {
-        "type": "text/javascript",
-        "packages": {},
-        "requests": {},
-        "exec": [
-          ""
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8080"
-    },
-    {
-      "key": "accessToken",
-      "value": ""
-    },
-    {
-      "key": "refreshToken",
-      "value": ""
-    },
-    {
-      "key": "categoryId",
-      "value": ""
-    },
-    {
-      "key": "productId",
-      "value": ""
-    },
-    {
-      "key": "etudiantId",
-      "value": ""
-    },
-    {
-      "key": "establishmentCode",
-      "value": ""
-    },
-    {
-      "key": "ouvrageId",
-      "value": ""
+      "name": "Dashboard établissement (ADMIN_ETABLISSEMENT)",
+      "item": [
+        {
+          "name": "Login admin établissement client-b",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Login admin établissement réussi', () => pm.response.to.have.status(200));",
+                "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Consulter le dashboard établissement",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/dashboard/etablissement"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Dashboard accessible', () => pm.response.to.have.status(200));",
+                "const r = pm.response.json();",
+                "pm.expect(r).to.have.property('nombreEtudiants');",
+                "pm.expect(r).to.have.property('nombreRessources');",
+                "pm.expect(r).to.have.property('empruntsEnCours');",
+                "pm.expect(r).to.have.property('empruntsExpires');",
+                "pm.expect(r).to.have.property('empruntsRetardes');",
+                "pm.expect(r.nombreEtudiants).to.be.a('number');",
+                "pm.expect(r.nombreRessources).to.be.a('number');"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Filtrer les emprunts actifs du tenant",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/emprunts?statut=ACTIF"},
+          "event": [{
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Liste admin des emprunts accessible', () => pm.response.to.have.status(200));",
+                "pm.response.json().forEach(e => pm.expect(e.statut).to.eql('ACTIF'));"
+              ]
+            }
+          }]
+        }
+      ]
     }
   ]
 }
