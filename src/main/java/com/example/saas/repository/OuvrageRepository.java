@@ -30,5 +30,7 @@ public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
 
     Optional<Ouvrage> findByIdAndTenantId(UUID id, String tenantId);
 
-        long countByTenantId(String tenantId);
+        Optional<Ouvrage> findByIdAndTenantIdAndActifTrue(UUID id, String tenantId);
+
+        long countByTenantIdAndActifTrue(String tenantId);
 }

@@ -33,7 +33,7 @@ public class DashboardServiceImpl implements DashboardService {
         String tenantId = tenant.currentTenant();
         return new DashboardEtablissementResponse(
                 etudiants.countByUtilisateur_TenantId(tenantId),
-                ouvrages.countByTenantId(tenantId),
+                ouvrages.countByTenantIdAndActifTrue(tenantId),
                 emprunts.countByTenantIdAndStatut(tenantId, Emprunt.Statut.ACTIF),
                 emprunts.countByTenantIdAndStatut(tenantId, Emprunt.Statut.EXPIRE),
                 emprunts.countByTenantIdAndStatut(tenantId, Emprunt.Statut.RETARDE));

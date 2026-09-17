@@ -42,7 +42,10 @@ public class OuvrageServiceImpl implements OuvrageService {
         return repository.findAllByTenantIdAndActifFalseOrderByTitre(tenant()).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
-    public OuvrageResponse findById(UUID id) { return mapper.toResponse(findEntity(id)); }
+    public OuvrageResponse findById(UUID id) {
+        return mapper.toResponse(repository.findByIdAndTenantIdAndActifTrue(id, tenant())
+                .orElseThrow(() -> new ResourceNotFoundException("Ouvrage introuvable")));
+    }
     public OuvrageResponse create(OuvrageRequest request) {
         return mapper.toResponse(repository.save(new Ouvrage(tenant(), request.titre(), request.auteur(), request.resume(),
                 filiere(request.filiereId()), niveau(request.niveauId()))));

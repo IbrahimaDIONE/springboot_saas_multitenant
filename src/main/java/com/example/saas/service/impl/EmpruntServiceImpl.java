@@ -59,7 +59,7 @@ public class EmpruntServiceImpl implements EmpruntService {
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
         Ouvrage ouvrage = ouvrageRepository
-                .findByIdAndTenantId(request.ouvrageId(), tenantId)
+                .findByIdAndTenantIdAndActifTrue(request.ouvrageId(), tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Ouvrage non trouvé"));
 
