@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.FieldError;
 
 import java.time.Instant;
 import java.util.*;
@@ -35,7 +36,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({InvalidTokenException.class, AuthenticationException.class})
     ResponseEntity<ApiError> unauthorized(RuntimeException exception, HttpServletRequest request) {
         return build(
-                HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", exception.getMessage(), request, Map.of());
+                                HttpStatus.UNAUTHORIZED,
+                                "UNAUTHORIZED",
+                                "Identifiants invalides ou session non autorisée",
+                                request,
+                                Map.of());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -58,6 +63,17 @@ public class GlobalExceptionHandler {
                 request,
                 Map.of());
     }
+
+        @ExceptionHandler(IllegalStateException.class)
+        ResponseEntity<ApiError> stateConflict(
+                        IllegalStateException exception, HttpServletRequest request) {
+                return build(
+                                HttpStatus.CONFLICT,
+                                "BUSINESS_CONFLICT",
+                                exception.getMessage(),
+                                request,
+                                Map.of());
+        }
 
         @ExceptionHandler(IllegalArgumentException.class)
         ResponseEntity<ApiError> badRequest(
@@ -88,7 +104,7 @@ public class GlobalExceptionHandler {
         exception
                 .getBindingResult()
                 .getFieldErrors()
-                .forEach(error -> fields.putIfAbsent(error.getField(), error.getDefaultMessage()));
+                .forEach(error -> fields.putIfAbsent(error.getField(), frenchValidationMessage(error)));
         return build(
                 HttpStatus.BAD_REQUEST,
                 "VALIDATION_ERROR",
@@ -107,6 +123,29 @@ public class GlobalExceptionHandler {
                 request,
                 Map.of());
     }
+
+        private String frenchValidationMessage(FieldError error) {
+                String message = error.getDefaultMessage();
+                if (message != null && !message.startsWith("must ") && !message.startsWith("size must")) {
+                        return message;
+                }
+                String[] codes = error.getCodes() == null ? new String[0] : error.getCodes();
+                for (String code : codes) {
+                        if (code.startsWith("NotBlank") || code.startsWith("NotNull")) {
+                                return "Ce champ est obligatoire";
+                        }
+                        if (code.startsWith("Email")) {
+                                return "L'adresse e-mail est invalide";
+                        }
+                        if (code.startsWith("Size")) {
+                                return "La longueur de ce champ est invalide";
+                        }
+                        if (code.startsWith("Pattern")) {
+                                return "Le format de ce champ est invalide";
+                        }
+                }
+                return "La valeur fournie est invalide";
+        }
 
     private ResponseEntity<ApiError> build(
             HttpStatus status,
