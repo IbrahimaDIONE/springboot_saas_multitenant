@@ -6,7 +6,6 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "57559378",
     "_collection_link": "https://go.postman.co/collection/57559378-75667917-e47b-42de-ac28-edc793ed0e7b?source=collection_link"
-    "description": "Authentification JWT, profil utilisateur, contrôle d'accès par rôle et gestion des établissements (BiblioUniv)."
   },
   "variable": [
     {"key": "baseUrl", "value": "http://localhost:8080"},
