@@ -54,7 +54,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         UUID   userId   = currentUserId();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateur_Id(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -90,7 +90,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         UUID   userId   = currentUserId();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateur_Id(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -143,7 +143,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         UUID   userId   = currentUserId();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateur_Id(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 

@@ -16,15 +16,17 @@ Authorization: Bearer <accessToken>
   -> TenantContext -> Service -> Repository(id + tenantId)
 ```
 
-`POST /api/auth/refresh` renouvelle les deux tokens et révoque l'ancien refresh token. `POST /api/auth/logout` révoque le refresh token. En production, remplacez le secret de démonstration avec `JWT_SECRET` et stockez-le dans un coffre de secrets.
+`POST /api/auth/refresh` renouvelle les deux tokens et révoque l'ancien refresh token. `POST /api/auth/logout` révoque le refresh token. En production, remplacez le secret de démonstration avec `JWT_SECRET` et stockez-le dans un coffre de secrets. Ne commitez jamais de secret ou de mot de passe en clair.
 
-## Comptes
+## Comptes de démonstration
 
-| Utilisateur | Mot de passe | Tenant |
-|---|---|---|
-| `client-a` | `password` | `tenant-a` |
-| `client-b` | `password` | `tenant-b` |
-| `client-c` | `password` | `tenant-b` |
+Les comptes de test ne doivent jamais être documentés avec des mots de passe réels en clair dans le dépôt public.
+
+Utilisez des identifiants générés hors dépôt, ou configurez-les via variables d’environnement / secrets du runtime :
+
+- `DB_USER`, `DB_PASSWORD`
+- `JWT_SECRET`
+- variables de compte d’application injectées au démarrage
 
 ## Bibliothèque
 
