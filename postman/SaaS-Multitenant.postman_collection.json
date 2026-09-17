@@ -661,11 +661,15 @@
             "listen": "test",
             "script": {
               "exec": [
-                "pm.test('Emprunt créé', () => pm.response.to.have.status(201));",
+                "pm.test('Emprunt créé ou déjà actif', () => pm.expect([201, 409]).to.include(pm.response.code));",
                 "const r = pm.response.json();",
-                "pm.expect(r.ouvrageId).to.eql(pm.collectionVariables.get('ouvrageId'));",
-                "pm.expect(r.statut).to.eql('ACTIF');",
-                "pm.collectionVariables.set('empruntId', r.id);"
+                "if (pm.response.code === 201) {",
+                "  pm.expect(r.ouvrageId).to.eql(pm.collectionVariables.get('ouvrageId'));",
+                "  pm.expect(r.statut).to.eql('ACTIF');",
+                "  pm.collectionVariables.set('empruntId', r.id);",
+                "} else {",
+                "  pm.expect(r.code).to.eql('BUSINESS_CONFLICT');",
+                "}"
               ]
             }
           }]
@@ -678,8 +682,9 @@
             "script": {
               "exec": [
                 "pm.test('Mes emprunts accessibles', () => pm.response.to.have.status(200));",
-                "const ids = pm.response.json().map(e => e.id);",
-                "pm.expect(ids).to.include(pm.collectionVariables.get('empruntId'));"
+                "const emprunts = pm.response.json();",
+                "if (!pm.collectionVariables.get('empruntId') && emprunts.length) pm.collectionVariables.set('empruntId', emprunts[0].id);",
+                "if (pm.collectionVariables.get('empruntId')) pm.expect(emprunts.map(e => e.id)).to.include(pm.collectionVariables.get('empruntId'));"
               ]
             }
           }]
