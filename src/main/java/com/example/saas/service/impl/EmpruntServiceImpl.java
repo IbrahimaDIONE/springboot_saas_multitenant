@@ -40,26 +40,26 @@ public class EmpruntServiceImpl implements EmpruntService {
         this.mapper             = mapper;
     }
 
-    /** Récupère l'UUID de l'utilisateur connecté depuis le JWT. */
-    private UUID currentUserId() {
+        /** Récupère le username de l'utilisateur connecté depuis le JWT. */
+        private String currentUsername() {
         Authentication auth = SecurityContextHolder
                 .getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        return UUID.fromString(jwt.getSubject());
+                return jwt.getSubject();
     }
 
     @Override
     public EmpruntResponse emprunter(EmpruntRequest request) {
         String tenantId = TenantContext.get();
-        UUID   userId   = currentUserId();
+        String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateurUsername(username)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
         Ouvrage ouvrage = ouvrageRepository
-                .findByIdAndTenantId(request.ouvrageId(), tenantId)
+                .findByIdAndTenantIdAndActifTrue(request.ouvrageId(), tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Ouvrage non trouvé"));
 
@@ -87,10 +87,10 @@ public class EmpruntServiceImpl implements EmpruntService {
     @Transactional(readOnly = true)
     public List<EmpruntResponse> mesEmprunts() {
         String tenantId = TenantContext.get();
-        UUID   userId   = currentUserId();
+        String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateurUsername(username)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -140,10 +140,10 @@ public class EmpruntServiceImpl implements EmpruntService {
     @Transactional(readOnly = true)
     public LectureResponse lireEnLigne(UUID empruntId) {
         String tenantId = TenantContext.get();
-        UUID   userId   = currentUserId();
+        String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurId(userId)
+                .findByUtilisateurUsername(username)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 

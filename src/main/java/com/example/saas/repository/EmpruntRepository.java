@@ -23,4 +23,6 @@ public interface EmpruntRepository extends JpaRepository<Emprunt, UUID> {
     boolean existsByTenantIdAndEtudiantIdAndOuvrageIdAndStatut(
             String tenantId, UUID etudiantId,
             UUID ouvrageId, Emprunt.Statut statut);
+
+        long countByTenantIdAndStatut(String tenantId, Emprunt.Statut statut);
 }
