@@ -8,6 +8,10 @@ spring:
     hibernate.ddl-auto: validate
     open-in-view: false
   flyway.enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
 management.endpoints.web.exposure.include: health,info
 server.port: ${PORT:8080}
 app:
@@ -16,3 +20,5 @@ app:
       secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-1234567890}
       access-token-minutes: 15
       refresh-token-days: 7
+  storage:
+    memoires-dir: ${MEMOIRES_STORAGE_DIR:./data/memoires}
