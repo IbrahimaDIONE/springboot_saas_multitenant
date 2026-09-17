@@ -80,6 +80,10 @@ La gestion des établissements est disponible pour `ADMIN_PLATEFORME` :
 - `PATCH /api/etablissements/{code}/statut?valeur=ACTIF|INACTIF` active ou désactive un établissement ;
 - `GET /api/etablissements/statistiques` retourne les statistiques globales de la plateforme.
 
+Le tableau de bord d'établissement est disponible pour `ADMIN_ETABLISSEMENT` :
+
+- `GET /api/dashboard/etablissement` retourne le nombre d'étudiants, de ressources et la répartition des emprunts par statut du tenant courant.
+
 ## Postman
 
 Importez [SaaS-Multitenant.postman_collection.json](postman/SaaS-Multitenant.postman_collection.json). Exécutez les requêtes dans l'ordre : les scripts Postman enregistrent automatiquement `accessToken`, `refreshToken`, `categoryId` et `productId`.
