@@ -10,5 +10,6 @@ public record OuvrageResponse(
         String resume,
         FiliereResponse filiere,
         NiveauResponse niveau,
+        boolean actif,
         Instant createdAt,
         Instant updatedAt) {}

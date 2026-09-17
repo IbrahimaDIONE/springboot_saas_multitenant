@@ -25,6 +25,9 @@ public class Ouvrage extends BaseTenantEntity {
     @JoinColumn(name = "niveau_id", nullable = false)
     private Niveau niveau;
 
+    @Column(nullable = false)
+    private boolean actif = true;
+
     protected Ouvrage() {}
 
     public Ouvrage(String tenantId, String titre, String auteur, String resume, Filiere filiere, Niveau niveau) {
@@ -47,10 +50,14 @@ public class Ouvrage extends BaseTenantEntity {
         this.niveau = niveau;
     }
 
+    public void archiver() { this.actif = false; }
+    public void reactiver() { this.actif = true; }
+
     public String getTitre() { return titre; }
     public String getAuteur() { return auteur; }
     public String getResume() { return resume; }
     public String getUrlFichier() { return urlFichier; }
     public Filiere getFiliere() { return filiere; }
     public Niveau getNiveau() { return niveau; }
+    public boolean isActif() { return actif; }
 }
