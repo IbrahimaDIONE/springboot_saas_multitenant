@@ -26,7 +26,7 @@ class DashboardServiceImplTest {
     void shouldAggregateOnlyCurrentTenant() {
         when(tenant.currentTenant()).thenReturn("tenant-b");
         when(etudiants.countByUtilisateur_TenantId("tenant-b")).thenReturn(12L);
-        when(ouvrages.countByTenantId("tenant-b")).thenReturn(34L);
+        when(ouvrages.countByTenantIdAndActifTrue("tenant-b")).thenReturn(34L);
         when(emprunts.countByTenantIdAndStatut("tenant-b", Emprunt.Statut.ACTIF)).thenReturn(5L);
         when(emprunts.countByTenantIdAndStatut("tenant-b", Emprunt.Statut.EXPIRE)).thenReturn(2L);
         when(emprunts.countByTenantIdAndStatut("tenant-b", Emprunt.Statut.RETARDE)).thenReturn(1L);
@@ -41,6 +41,6 @@ class DashboardServiceImplTest {
         assertThat(response.empruntsExpires()).isEqualTo(2L);
         assertThat(response.empruntsRetardes()).isEqualTo(1L);
         verify(etudiants).countByUtilisateur_TenantId("tenant-b");
-        verify(ouvrages).countByTenantId("tenant-b");
+        verify(ouvrages).countByTenantIdAndActifTrue("tenant-b");
     }
 }
