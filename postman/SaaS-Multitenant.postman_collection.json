@@ -1372,7 +1372,8 @@
                 "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
               ]
             }
-          }]
+          },
+          "response": []
         },
         {
           "name": "Emprunter un ouvrage numérique",
@@ -1397,7 +1398,8 @@
                 "}"
               ]
             }
-          }]
+          },
+          "response": []
         },
         {
           "name": "Lister mes emprunts",
@@ -1463,7 +1465,8 @@
                 "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
               ]
             }
-          }]
+          },
+          "response": []
         },
         {
           "name": "Consulter le dashboard établissement",
@@ -1483,7 +1486,8 @@
                 "pm.expect(r.nombreRessources).to.be.a('number');"
               ]
             }
-          }]
+          },
+          "response": []
         },
         {
           "name": "Filtrer les emprunts actifs du tenant",
@@ -1499,6 +1503,78 @@
           }]
         }
       ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "etudiantId",
+      "value": ""
+    },
+    {
+      "key": "establishmentCode",
+      "value": ""
+    },
+    {
+      "key": "ouvrageId",
+      "value": ""
+    },
+    {
+      "key": "memoireId",
+      "value": ""
     }
   ]
 }
