@@ -7,11 +7,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.*;
 
 public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
-    List<Ouvrage> findAllByTenantIdOrderByTitre(String tenantId);
+    List<Ouvrage> findAllByTenantIdAndActifTrueOrderByTitre(String tenantId);
+
+    List<Ouvrage> findAllByTenantIdAndActifFalseOrderByTitre(String tenantId);
 
     @Query("""
             select o from Ouvrage o
             where o.tenantId = :tenantId
+              and o.actif = true
               and (:filiereId is null or o.filiere.id = :filiereId)
               and (:niveauId is null or o.niveau.id = :niveauId)
               and (lower(o.titre) like lower(concat('%', :search, '%'))
@@ -26,4 +29,8 @@ public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
             @Param("niveauId") UUID niveauId);
 
     Optional<Ouvrage> findByIdAndTenantId(UUID id, String tenantId);
+
+        Optional<Ouvrage> findByIdAndTenantIdAndActifTrue(UUID id, String tenantId);
+
+        long countByTenantIdAndActifTrue(String tenantId);
 }

@@ -20,7 +20,7 @@ public class OuvrageServiceImpl implements OuvrageService {
     private final TenantProvider tenantProvider;
 
     public OuvrageServiceImpl(OuvrageRepository repository, OuvrageMapper mapper, FiliereRepository filieres,
-            NiveauRepository niveaux, TenantProvider tenantProvider) {
+                              NiveauRepository niveaux, TenantProvider tenantProvider) {
         this.repository = repository;
         this.mapper = mapper;
         this.filieres = filieres;
@@ -29,7 +29,7 @@ public class OuvrageServiceImpl implements OuvrageService {
     }
     @Transactional(readOnly = true)
     public List<OuvrageResponse> findAll() {
-        return repository.findAllByTenantIdOrderByTitre(tenant()).stream().map(mapper::toResponse).toList();
+        return repository.findAllByTenantIdAndActifTrueOrderByTitre(tenant()).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
     public List<OuvrageResponse> findAll(String search, UUID filiereId, UUID niveauId) {
@@ -38,7 +38,14 @@ public class OuvrageServiceImpl implements OuvrageService {
         return repository.searchByTenantId(tenant(), term, filiereId, niveauId).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
-    public OuvrageResponse findById(UUID id) { return mapper.toResponse(findEntity(id)); }
+    public List<OuvrageResponse> findArchives() {
+        return repository.findAllByTenantIdAndActifFalseOrderByTitre(tenant()).stream().map(mapper::toResponse).toList();
+    }
+    @Transactional(readOnly = true)
+    public OuvrageResponse findById(UUID id) {
+        return mapper.toResponse(repository.findByIdAndTenantIdAndActifTrue(id, tenant())
+                .orElseThrow(() -> new ResourceNotFoundException("Ouvrage introuvable")));
+    }
     public OuvrageResponse create(OuvrageRequest request) {
         return mapper.toResponse(repository.save(new Ouvrage(tenant(), request.titre(), request.auteur(), request.resume(),
                 filiere(request.filiereId()), niveau(request.niveauId()))));
@@ -46,6 +53,16 @@ public class OuvrageServiceImpl implements OuvrageService {
     public OuvrageResponse update(UUID id, OuvrageRequest request) {
         Ouvrage ouvrage = findEntity(id);
         ouvrage.update(request.titre(), request.auteur(), request.resume(), filiere(request.filiereId()), niveau(request.niveauId()));
+        return mapper.toResponse(ouvrage);
+    }
+    public OuvrageResponse archiver(UUID id) {
+        Ouvrage ouvrage = findEntity(id);
+        ouvrage.archiver();
+        return mapper.toResponse(ouvrage);
+    }
+    public OuvrageResponse reactiver(UUID id) {
+        Ouvrage ouvrage = findEntity(id);
+        ouvrage.reactiver();
         return mapper.toResponse(ouvrage);
     }
     public void delete(UUID id) { repository.delete(findEntity(id)); }
