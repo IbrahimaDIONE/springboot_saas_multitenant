@@ -6,6 +6,7 @@ import com.example.saas.service.NotificationService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -27,24 +28,28 @@ public class NotificationController {
 
     /** Étudiant : toutes ses notifications */
     @GetMapping("/api/notifications/mes-notifications")
+    @PreAuthorize("hasRole('ETUDIANT')")
     public List<NotificationResponse> mesNotifications() {
         return service.mesNotifications();
     }
 
     /** Étudiant : notifications non lues */
     @GetMapping("/api/notifications/non-lues")
+    @PreAuthorize("hasRole('ETUDIANT')")
     public List<NotificationResponse> nonLues() {
         return service.mesNotificationsNonLues();
     }
 
     /** Étudiant : compter les non lues */
     @GetMapping("/api/notifications/compter-non-lues")
+    @PreAuthorize("hasRole('ETUDIANT')")
     public Map<String, Long> compterNonLues() {
         return Map.of("nonLues", service.compterNonLues());
     }
 
     /** Étudiant : marquer une notification comme lue */
     @PatchMapping("/api/notifications/{id}/lire")
+    @PreAuthorize("hasRole('ETUDIANT')")
     public NotificationResponse marquerLu(@PathVariable UUID id) {
         return service.marquerLu(id);
     }
@@ -54,6 +59,7 @@ public class NotificationController {
     /** Admin : envoyer une notification à un étudiant */
     @PostMapping("/api/notifications")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public NotificationResponse envoyer(
             @Valid @RequestBody NotificationRequest request) {
         return service.envoyer(request);
@@ -61,6 +67,7 @@ public class NotificationController {
 
     /** Admin : toutes les notifications de l'établissement */
     @GetMapping("/api/notifications")
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public List<NotificationResponse> listAll() {
         return service.findAllByTenant();
     }
@@ -70,6 +77,7 @@ public class NotificationController {
     /** Admin : créer une règle de pénalité */
     @PostMapping("/api/regles-penalite")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public ReglePenaliteResponse creerRegle(
             @Valid @RequestBody ReglePenaliteRequest request) {
         return service.creerRegle(request);
@@ -77,12 +85,14 @@ public class NotificationController {
 
     /** Admin : lister les règles de pénalité */
     @GetMapping("/api/regles-penalite")
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public List<ReglePenaliteResponse> listerRegles() {
         return service.listerRegles();
     }
 
     /** Admin : modifier une règle */
     @PutMapping("/api/regles-penalite/{id}")
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public ReglePenaliteResponse modifierRegle(
             @PathVariable UUID id,
             @Valid @RequestBody ReglePenaliteRequest request) {
@@ -92,6 +102,7 @@ public class NotificationController {
     /** Admin : supprimer une règle */
     @DeleteMapping("/api/regles-penalite/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public void supprimerRegle(@PathVariable UUID id) {
         service.supprimerRegle(id);
     }
