@@ -30,9 +30,15 @@ public class ReglePenalite extends BaseTenantEntity {
     public ReglePenalite(String tenantId, int joursTolérance,
                          TypeConsequence typeConsequence, String description) {
         super(tenantId);
-        this.joursTolérance  = joursTolérance;
+        update(joursTolérance, typeConsequence, description);
+    }
+
+    public void update(int joursTolérance, TypeConsequence typeConsequence, String description) {
+        if (joursTolérance < 0 || typeConsequence == null)
+            throw new IllegalArgumentException("Règle de pénalité invalide");
+        this.joursTolérance = joursTolérance;
         this.typeConsequence = typeConsequence;
-        this.description     = description;
+        this.description = description;
     }
 
     public int              getJoursTolérance()  { return joursTolérance; }

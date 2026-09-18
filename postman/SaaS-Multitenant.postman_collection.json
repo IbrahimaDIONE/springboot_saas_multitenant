@@ -425,7 +425,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Sciences\"}"
+              "raw": "{\"nom\":\"Sciences\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -532,7 +532,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Interdit\"}"
+              "raw": "{\"nom\":\"Interdit\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -610,7 +610,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Plateforme\"}"
+              "raw": "{\"nom\":\"Plateforme\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -1013,7 +1013,8 @@
                   "pm.test('Étudiant créé inactif', () => pm.response.to.have.status(201));",
                   "const r = pm.response.json();",
                   "pm.expect(r.enabled).to.eql(false);",
-                  "pm.collectionVariables.set('etudiantId', r.id);"
+                  "pm.collectionVariables.set('etudiantId', r.id);",
+                  "pm.collectionVariables.set('studentUserId', r.utilisateurId);"
                 ],
                 "type": "text/javascript"
               }
@@ -1503,6 +1504,154 @@
           }]
         }
       ]
+    },
+    {
+      "name": "Catalogue BiblioUniv",
+      "item": [
+        {
+          "name": "Login admin établissement client-b",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Login réussi', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"]}}]
+        },
+        {
+          "name": "Lister les filières",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/filieres"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Filières accessibles', () => pm.response.to.have.status(200));", "const r = pm.response.json();", "if (r.length) pm.collectionVariables.set('filiereId', r[0].id);"]}}]
+        },
+        {
+          "name": "Lister les niveaux",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/niveaux"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Niveaux accessibles', () => pm.response.to.have.status(200));", "const r = pm.response.json();", "if (r.length) pm.collectionVariables.set('niveauId', r[0].id);"]}}]
+        },
+        {
+          "name": "Lister les ouvrages actifs",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/ouvrages"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Ouvrages accessibles', () => pm.response.to.have.status(200));", "const r = pm.response.json();", "if (r.length) pm.collectionVariables.set('ouvrageId', r[0].id);"]}}]
+        },
+        {
+          "name": "Rechercher un ouvrage",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/ouvrages?search=algorithmique"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Recherche ouvrages accessible', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Consulter un ouvrage",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/ouvrages/{{ouvrageId}}"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Détail ouvrage accessible', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Lister les mémoires actifs",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/memoires"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Mémoires accessibles', () => pm.response.to.have.status(200));", "const r = pm.response.json();", "if (r.length) pm.collectionVariables.set('memoireId', r[0].id);"]}}]
+        },
+        {
+          "name": "Rechercher des mémoires",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/memoires?search=université&annee=2024"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Recherche mémoires accessible', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Lister les mémoires archivés",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/memoires/archives"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Archives mémoires accessibles', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Télécharger un fichier de mémoire",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/memoires/{{memoireId}}/fichiers/{{fichierId}}"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Téléchargement traité', () => pm.expect([200, 404]).to.include(pm.response.code));"]}}]
+        }
+      ]
+    },
+    {
+      "name": "Notifications et règles de pénalité",
+      "item": [
+        {
+          "name": "Login étudiant client-c",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-c\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Login étudiant réussi', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"]}}]
+        },
+        {
+          "name": "Mes notifications",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/notifications/mes-notifications"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Notifications accessibles', () => pm.response.to.have.status(200));", "const r = pm.response.json();", "if (r.length) pm.collectionVariables.set('notificationId', r[0].id);"]}}]
+        },
+        {
+          "name": "Mes notifications non lues",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/notifications/non-lues"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Notifications non lues accessibles', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Compter mes notifications non lues",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/notifications/compter-non-lues"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Compteur accessible', () => pm.response.to.have.status(200));", "pm.expect(pm.response.json()).to.have.property('nonLues');"]}}]
+        },
+        {
+          "name": "Marquer une notification comme lue",
+          "request": {"method": "PATCH", "url": "{{baseUrl}}/api/notifications/{{notificationId}}/lire"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Notification traitée', () => pm.expect([200, 404]).to.include(pm.response.code));"]}}]
+        },
+        {
+          "name": "Login admin pour notifications",
+          "auth": {"type": "noauth"},
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Login admin réussi', () => pm.response.to.have.status(200));", "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"]}}]
+        },
+        {
+          "name": "Lister les notifications du tenant",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/notifications"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Liste admin accessible', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Envoyer une notification",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"etudiantId\":\"{{studentUserId}}\",\"message\":\"Rappel de consultation\",\"type\":\"RAPPEL_ECHEANCE\"}"},
+            "url": "{{baseUrl}}/api/notifications"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Notification envoyée ou étudiant absent', () => pm.expect([201, 404]).to.include(pm.response.code));"]}}]
+        },
+        {
+          "name": "Créer une règle de pénalité",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"joursTolérance\":3,\"typeConsequence\":\"AVERTISSEMENT\",\"description\":\"Rappel après retard\"}"},
+            "url": "{{baseUrl}}/api/regles-penalite"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Règle créée ou validation refusée', () => pm.expect([201, 400]).to.include(pm.response.code));", "if (pm.response.code === 201) pm.collectionVariables.set('reglePenaliteId', pm.response.json().id);"]}}]
+        },
+        {
+          "name": "Lister les règles de pénalité",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/regles-penalite"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Règles accessibles', () => pm.response.to.have.status(200));"]}}]
+        },
+        {
+          "name": "Modifier une règle de pénalité",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {"mode": "raw", "raw": "{\"joursTolérance\":5,\"typeConsequence\":\"SUSPENSION_TEMPORAIRE\",\"description\":\"Retard répété\"}"},
+            "url": "{{baseUrl}}/api/regles-penalite/{{reglePenaliteId}}"
+          },
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Règle modifiée ou absente', () => pm.expect([200, 404]).to.include(pm.response.code));"]}}]
+        }
+      ]
     }
   ],
   "auth": {
@@ -1574,6 +1723,30 @@
     },
     {
       "key": "memoireId",
+      "value": ""
+    },
+    {
+      "key": "filiereId",
+      "value": ""
+    },
+    {
+      "key": "niveauId",
+      "value": ""
+    },
+    {
+      "key": "fichierId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "reglePenaliteId",
+      "value": ""
+    },
+    {
+      "key": "studentUserId",
       "value": ""
     }
   ]

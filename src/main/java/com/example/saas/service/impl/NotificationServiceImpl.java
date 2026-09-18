@@ -48,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     private Etudiant currentEtudiant(String tenantId) {
         return etudiantRepository
-                .findByUtilisateur_Id(currentUserId())
+                .findByUtilisateur_IdAndUtilisateur_TenantId(currentUserId(), tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
     }
@@ -88,6 +88,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Notification non trouvée"));
+        if (!notification.getEtudiant().getId().equals(currentEtudiant(tenantId).getId())) {
+            throw new ResourceNotFoundException("Notification non trouvée");
+        }
         notification.marquerLu();
         return notificationMapper.toResponse(
                 notificationRepository.save(notification));
@@ -110,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
         String tenantId = TenantContext.get();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateur_Id(request.etudiantId())
+                .findByUtilisateur_IdAndUtilisateur_TenantId(request.etudiantId(), tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -128,8 +131,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationResponse> findAllByTenant() {
         return notificationRepository
-                .findAllByTenantIdAndEtudiantIdOrderByCreatedAtDesc(
-                        TenantContext.get(), null)
+                .findAllByTenantIdOrderByCreatedAtDesc(TenantContext.get())
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
@@ -173,13 +175,9 @@ public class NotificationServiceImpl implements NotificationService {
         ReglePenalite.TypeConsequence type =
                 ReglePenalite.TypeConsequence.valueOf(
                         request.typeConsequence().toUpperCase());
-        ReglePenalite updated = new ReglePenalite(
-                tenantId,
-                request.joursTolérance(),
-                type,
-                request.description());
+        regle.update(request.joursTolérance(), type, request.description());
         return reglePenaliteMapper.toResponse(
-                reglePenaliteRepository.save(updated));
+                reglePenaliteRepository.save(regle));
     }
 
     @Override

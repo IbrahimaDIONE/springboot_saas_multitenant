@@ -16,6 +16,8 @@ public interface NotificationRepository
     List<Notification> findAllByTenantIdAndEtudiantIdAndLuFalseOrderByCreatedAtDesc(
             String tenantId, UUID etudiantId);
 
+        List<Notification> findAllByTenantIdOrderByCreatedAtDesc(String tenantId);
+
     Optional<Notification> findByIdAndTenantId(UUID id, String tenantId);
 
     long countByTenantIdAndEtudiantIdAndLuFalse(
