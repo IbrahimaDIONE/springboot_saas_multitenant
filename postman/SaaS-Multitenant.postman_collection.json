@@ -72,7 +72,7 @@
           "name": "Session /api/me (client-a)",
           "event": [
             {
-              "listen": "test",
+                          "pm.test('Retour traité, interdit ou emprunt absent', () => pm.expect([200, 403, 404]).to.include(pm.response.code));"
               "script": {
                 "exec": [
                   "pm.test('Rôles admin plateforme', () => {",
@@ -1416,6 +1416,16 @@
               ]
             }
           }]
+        },
+        {
+          "name": "Retourner un emprunt (admin)",
+          "request": {"method": "PATCH", "url": "{{baseUrl}}/api/emprunts/{{empruntId}}/retour"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Retour traité ou emprunt absent', () => pm.expect([200, 404]).to.include(pm.response.code));"]}}]
+        },
+        {
+          "name": "Lister les pénalités du tenant",
+          "request": {"method": "GET", "url": "{{baseUrl}}/api/penalites"},
+          "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Pénalités accessibles', () => pm.response.to.have.status(200));"]}}]
         }
       ]
     },

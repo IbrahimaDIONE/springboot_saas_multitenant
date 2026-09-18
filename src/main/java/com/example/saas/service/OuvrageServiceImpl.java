@@ -17,14 +17,19 @@ public class OuvrageServiceImpl implements OuvrageService {
     private final OuvrageMapper mapper;
     private final FiliereRepository filieres;
     private final NiveauRepository niveaux;
+    private final CategorieRepository categories;
+    private final NotificationService notifications;
     private final TenantProvider tenantProvider;
 
     public OuvrageServiceImpl(OuvrageRepository repository, OuvrageMapper mapper, FiliereRepository filieres,
-                              NiveauRepository niveaux, TenantProvider tenantProvider) {
+                              NiveauRepository niveaux, CategorieRepository categories,
+                              NotificationService notifications, TenantProvider tenantProvider) {
         this.repository = repository;
         this.mapper = mapper;
         this.filieres = filieres;
         this.niveaux = niveaux;
+        this.categories = categories;
+        this.notifications = notifications;
         this.tenantProvider = tenantProvider;
     }
     @Transactional(readOnly = true)
@@ -47,12 +52,17 @@ public class OuvrageServiceImpl implements OuvrageService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ouvrage introuvable")));
     }
     public OuvrageResponse create(OuvrageRequest request) {
-        return mapper.toResponse(repository.save(new Ouvrage(tenant(), request.titre(), request.auteur(), request.resume(),
-                filiere(request.filiereId()), niveau(request.niveauId()))));
+        Ouvrage ouvrage = new Ouvrage(tenant(), request.titre(), request.auteur(), request.resume(),
+            filiere(request.filiereId()), niveau(request.niveauId()));
+        ouvrage.associerCategorie(categorie(request.categorieId()));
+        Ouvrage saved = repository.save(ouvrage);
+        notifications.notifierNouvelleRessource(tenant(), saved.getTitre());
+        return mapper.toResponse(saved);
     }
     public OuvrageResponse update(UUID id, OuvrageRequest request) {
         Ouvrage ouvrage = findEntity(id);
         ouvrage.update(request.titre(), request.auteur(), request.resume(), filiere(request.filiereId()), niveau(request.niveauId()));
+        ouvrage.associerCategorie(categorie(request.categorieId()));
         return mapper.toResponse(ouvrage);
     }
     public OuvrageResponse archiver(UUID id) {
@@ -74,6 +84,10 @@ public class OuvrageServiceImpl implements OuvrageService {
     }
     private Niveau niveau(UUID id) {
         return niveaux.findByIdAndTenantId(id, tenant()).orElseThrow(() -> new ResourceNotFoundException("Niveau introuvable"));
+    }
+    private Categorie categorie(UUID id) {
+        return id == null ? null : categories.findByIdAndTenantId(id, tenant())
+                .orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
     }
     private String tenant() { return tenantProvider.currentTenant(); }
 }

@@ -10,5 +10,6 @@ public record EmpruntResponse(
         String  auteurOuvrage,
         Instant dateEmprunt,
         Instant dateExpiration,
+        Instant dateRetour,
         String  statut
 ) {}

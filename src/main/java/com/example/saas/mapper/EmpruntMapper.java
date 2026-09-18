@@ -15,6 +15,7 @@ public class EmpruntMapper {
                 e.getOuvrage().getAuteur(),
                 e.getDateEmprunt(),
                 e.getDateExpiration(),
+                e.getDateRetour(),
                 e.getStatut().name()
         );
     }

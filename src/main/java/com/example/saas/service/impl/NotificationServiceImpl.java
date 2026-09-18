@@ -106,6 +106,16 @@ public class NotificationServiceImpl implements NotificationService {
                         tenantId, etudiant.getId());
     }
 
+        @Override
+        public void notifierNouvelleRessource(String tenantId, String titre) {
+                for (Etudiant etudiant : etudiantRepository
+                                .findAllByUtilisateur_TenantIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(tenantId)) {
+                        notificationRepository.save(new Notification(tenantId, etudiant,
+                                        "Nouvelle ressource disponible : " + titre,
+                                        Notification.Type.NOUVELLE_RESSOURCE));
+                }
+        }
+
     // ── ADMIN ─────────────────────────────────────
 
     @Override

@@ -54,7 +54,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurUsername(username)
+                .findByUtilisateur_UsernameIgnoreCaseAndUtilisateur_TenantId(username, tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -105,13 +105,23 @@ public class EmpruntServiceImpl implements EmpruntService {
     @Override
     @Transactional(readOnly = true)
     public EmpruntResponse findById(UUID id) {
-        return mapper.toResponse(
-                empruntRepository
-                        .findByIdAndTenantId(id, TenantContext.get())
-                        .orElseThrow(() ->
-                                new ResourceNotFoundException("Emprunt non trouvé"))
-        );
+        String tenantId = TenantContext.get();
+        Emprunt emprunt = empruntRepository.findByIdAndTenantId(id, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Emprunt non trouvé"));
+        if (isStudent() && !emprunt.getEtudiant().getUtilisateur().getUsername()
+                .equalsIgnoreCase(currentUsername())) {
+            throw new ResourceNotFoundException("Emprunt non trouvé");
+        }
+        return mapper.toResponse(emprunt);
     }
+
+        @Override
+        public EmpruntResponse retourner(UUID id) {
+                Emprunt emprunt = empruntRepository.findByIdAndTenantId(id, TenantContext.get())
+                                .orElseThrow(() -> new ResourceNotFoundException("Emprunt non trouvé"));
+                emprunt.retourner();
+                return mapper.toResponse(emprunt);
+        }
 
     @Override
     @Transactional(readOnly = true)
@@ -143,7 +153,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateurUsername(username)
+                .findByUtilisateur_UsernameIgnoreCaseAndUtilisateur_TenantId(username, tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -168,4 +178,9 @@ public class EmpruntServiceImpl implements EmpruntService {
                 emprunt.getOuvrage().getUrlFichier()
         );
     }
+
+        private boolean isStudent() {
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                return auth.getAuthorities().stream().anyMatch(a -> "ROLE_ETUDIANT".equals(a.getAuthority()));
+        }
 }

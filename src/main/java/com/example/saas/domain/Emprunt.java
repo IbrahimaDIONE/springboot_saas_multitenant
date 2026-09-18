@@ -11,7 +11,7 @@ import java.time.Instant;
 @Table(name = "emprunts")
 public class Emprunt extends BaseTenantEntity {
 
-    public enum Statut { ACTIF, EXPIRE, RETARDE }
+    public enum Statut { ACTIF, EXPIRE, RETARDE, RETOURNE }
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "etudiant_id", nullable = false, updatable = false)
@@ -26,6 +26,9 @@ public class Emprunt extends BaseTenantEntity {
 
     @Column(name = "date_expiration", nullable = false)
     private Instant dateExpiration;
+
+    @Column(name = "date_retour")
+    private Instant dateRetour;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -47,10 +50,17 @@ public class Emprunt extends BaseTenantEntity {
 
     public void expirer()  { this.statut = Statut.EXPIRE; }
     public void retarder() { this.statut = Statut.RETARDE; }
+    public void retourner() {
+        if (this.statut == Statut.RETOURNE)
+            throw new IllegalStateException("Emprunt déjà retourné");
+        this.statut = Statut.RETOURNE;
+        this.dateRetour = Instant.now();
+    }
 
     public Etudiant getEtudiant()        { return etudiant; }
     public Ouvrage  getOuvrage()         { return ouvrage; }
     public Instant  getDateEmprunt()     { return dateEmprunt; }
     public Instant  getDateExpiration()  { return dateExpiration; }
+    public Instant  getDateRetour()     { return dateRetour; }
     public Statut   getStatut()          { return statut; }
 }

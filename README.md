@@ -84,6 +84,17 @@ Le tableau de bord d'établissement est disponible pour `ADMIN_ETABLISSEMENT` :
 
 - `GET /api/dashboard/etablissement` retourne le nombre d'étudiants, de ressources et la répartition des emprunts par statut du tenant courant.
 
+Les emprunts et pénalités comprennent également :
+
+- `PATCH /api/emprunts/{id}/retour` clôture un emprunt par l'administrateur de l'établissement ;
+- `GET /api/penalites/mes-penalites` permet à un étudiant de consulter ses pénalités ;
+- `GET /api/penalites` permet à l'administrateur de consulter les pénalités du tenant ;
+- les retards sont traités automatiquement et génèrent une pénalité ainsi qu'une notification ;
+- les échéances proches génèrent une notification de rappel, dédupliquée pendant 24 heures ;
+- une nouvelle ressource génère une notification pour les étudiants du tenant.
+
+Les ouvrages peuvent être associés à une catégorie via `categorieId`. Les favoris et l'historique restent développés séparément.
+
 ## Postman
 
 Importez [SaaS-Multitenant.postman_collection.json](postman/SaaS-Multitenant.postman_collection.json). Exécutez les requêtes dans l'ordre : les scripts Postman enregistrent automatiquement `accessToken`, `refreshToken`, `categoryId` et `productId`.

@@ -10,6 +10,7 @@ public interface NotificationService {
     List<NotificationResponse> mesNotificationsNonLues();
     NotificationResponse       marquerLu(UUID id);
     long                       compterNonLues();
+    void                       notifierNouvelleRessource(String tenantId, String titre);
 
     // Admin
     NotificationResponse       envoyer(NotificationRequest request);

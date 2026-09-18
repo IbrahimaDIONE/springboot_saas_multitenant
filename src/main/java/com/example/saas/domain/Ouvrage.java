@@ -25,6 +25,10 @@ public class Ouvrage extends BaseTenantEntity {
     @JoinColumn(name = "niveau_id", nullable = false)
     private Niveau niveau;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categorie_id")
+    private Categorie categorie;
+
     @Column(nullable = false)
     private boolean actif = true;
 
@@ -34,6 +38,8 @@ public class Ouvrage extends BaseTenantEntity {
         super(tenantId);
         update(titre, auteur, resume, filiere, niveau);
     }
+
+    public void associerCategorie(Categorie categorie) { this.categorie = categorie; }
 
     public void update(String titre, String auteur, String resume, Filiere filiere, Niveau niveau) {
         if (titre == null || titre.isBlank()
@@ -59,5 +65,6 @@ public class Ouvrage extends BaseTenantEntity {
     public String getUrlFichier() { return urlFichier; }
     public Filiere getFiliere() { return filiere; }
     public Niveau getNiveau() { return niveau; }
+    public Categorie getCategorie() { return categorie; }
     public boolean isActif() { return actif; }
 }

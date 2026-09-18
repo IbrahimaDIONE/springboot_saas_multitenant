@@ -2,6 +2,7 @@ package com.example.saas.controller;
 
 import com.example.saas.dto.*;
 import com.example.saas.service.NotificationService;
+import com.example.saas.service.PenaliteService;
 
 import jakarta.validation.Valid;
 
@@ -19,9 +20,11 @@ import java.util.*;
 public class NotificationController {
 
     private final NotificationService service;
+    private final PenaliteService penaliteService;
 
-    public NotificationController(NotificationService service) {
+    public NotificationController(NotificationService service, PenaliteService penaliteService) {
         this.service = service;
+        this.penaliteService = penaliteService;
     }
 
     // ── ÉTUDIANT ──────────────────────────────────
@@ -105,5 +108,17 @@ public class NotificationController {
     @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public void supprimerRegle(@PathVariable UUID id) {
         service.supprimerRegle(id);
+    }
+
+    @GetMapping("/api/penalites/mes-penalites")
+    @PreAuthorize("hasRole('ETUDIANT')")
+    public List<PenaliteResponse> mesPenalites() {
+        return penaliteService.mesPenalites();
+    }
+
+    @GetMapping("/api/penalites")
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
+    public List<PenaliteResponse> listerPenalites() {
+        return penaliteService.findAllByTenant();
     }
 }
