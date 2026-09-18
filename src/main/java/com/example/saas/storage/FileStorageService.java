@@ -36,10 +36,26 @@ public class FileStorageService {
 
     public void delete(String cheminRelatif) {
         try {
-            Files.deleteIfExists(root.resolve(cheminRelatif));
+            Files.deleteIfExists(resolve(cheminRelatif));
         } catch (IOException e) {
             throw new IllegalStateException("Échec de la suppression du fichier", e);
         }
+    }
+
+    public byte[] read(String cheminRelatif) {
+        try {
+            return Files.readAllBytes(resolve(cheminRelatif));
+        } catch (IOException e) {
+            throw new IllegalStateException("Échec de la lecture du fichier", e);
+        }
+    }
+
+    private Path resolve(String cheminRelatif) {
+        Path target = root.resolve(cheminRelatif).normalize();
+        if (!target.startsWith(root)) {
+            throw new IllegalArgumentException("Chemin de fichier invalide");
+        }
+        return target;
     }
 
     private String sanitize(String filename) {

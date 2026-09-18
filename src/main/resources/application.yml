@@ -8,6 +8,7 @@ spring:
     hibernate.ddl-auto: validate
     open-in-view: false
   flyway.enabled: true
+  flyway.out-of-order: true
   servlet:
     multipart:
       max-file-size: 20MB

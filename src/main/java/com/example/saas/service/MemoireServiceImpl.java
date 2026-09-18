@@ -53,7 +53,11 @@ public class MemoireServiceImpl implements MemoireService {
         return repository.findAllByTenantIdAndActifFalseOrderByAnneeDesc(tenant()).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
-    public MemoireResponse findById(UUID id) { return mapper.toResponse(findEntity(id)); }
+    public MemoireResponse findById(UUID id) {
+        Memoire memoire = repository.findByIdAndTenantIdAndActifTrue(id, tenant())
+                .orElseThrow(() -> new ResourceNotFoundException("Mémoire introuvable"));
+        return mapper.toResponse(memoire);
+    }
     public MemoireResponse create(MemoireRequest r) {
         Memoire memoire = new Memoire(tenant(), r.titre(), r.auteur(), r.encadreur(), r.resume(), r.annee(),
                 filiere(r.filiereId()), niveau(r.niveauId()));
@@ -97,6 +101,21 @@ public class MemoireServiceImpl implements MemoireService {
         Fichier fichier = findFichier(memoireId, fichierId);
         if (disponible) fichier.rendreDisponible(); else fichier.rendreIndisponible();
         return fichierMapper.toResponse(fichier);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public FichierDownloadResponse telechargerFichier(UUID memoireId, UUID fichierId) {
+        Memoire memoire = repository.findByIdAndTenantIdAndActifTrue(memoireId, tenant())
+                .orElseThrow(() -> new ResourceNotFoundException("Mémoire introuvable"));
+        Fichier fichier = findFichier(memoire.getId(), fichierId);
+        if (!fichier.isDisponible()) {
+            throw new ResourceNotFoundException("Fichier indisponible");
+        }
+        return new FichierDownloadResponse(
+                storage.read(fichier.getCheminStockage()),
+                fichier.getNomOriginal(),
+                fichier.getTypeMime());
     }
     private Fichier findFichier(UUID memoireId, UUID fichierId) {
         Fichier fichier = fichierRepository.findByIdAndTenantId(fichierId, tenant())

@@ -18,4 +18,5 @@ public interface MemoireService {
     FichierResponse ajouterFichier(UUID memoireId, MultipartFile file);
     void supprimerFichier(UUID memoireId, UUID fichierId);
     FichierResponse toggleDisponibilite(UUID memoireId, UUID fichierId, boolean disponible);
+    FichierDownloadResponse telechargerFichier(UUID memoireId, UUID fichierId);
 }
