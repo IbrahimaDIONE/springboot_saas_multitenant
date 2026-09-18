@@ -4,6 +4,10 @@ import com.example.saas.dto.*;
 import com.example.saas.service.MemoireService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,5 +62,16 @@ public class MemoireController {
     public FichierResponse toggleDisponibilite(@PathVariable UUID id, @PathVariable UUID fichierId,
                                                @RequestParam boolean disponible) {
         return service.toggleDisponibilite(id, fichierId, disponible);
+    }
+
+    @GetMapping("/{id}/fichiers/{fichierId}")
+    public ResponseEntity<byte[]> telechargerFichier(@PathVariable UUID id, @PathVariable UUID fichierId) {
+        FichierDownloadResponse fichier = service.telechargerFichier(id, fichierId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(fichier.typeMime()));
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename(fichier.nomOriginal())
+                .build());
+        return new ResponseEntity<>(fichier.contenu(), headers, HttpStatus.OK);
     }
 }

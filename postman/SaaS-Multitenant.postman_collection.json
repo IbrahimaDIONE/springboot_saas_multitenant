@@ -1372,7 +1372,7 @@
                 "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
               ]
             }
-          },
+          }],
           "response": []
         },
         {
@@ -1398,7 +1398,7 @@
                 "}"
               ]
             }
-          },
+          }],
           "response": []
         },
         {
@@ -1465,7 +1465,7 @@
                 "pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
               ]
             }
-          },
+          }],
           "response": []
         },
         {
@@ -1486,7 +1486,7 @@
                 "pm.expect(r.nombreRessources).to.be.a('number');"
               ]
             }
-          },
+          }],
           "response": []
         },
         {

@@ -31,4 +31,6 @@ public interface MemoireRepository extends JpaRepository<Memoire, UUID> {
             @Param("annee") Integer annee);
 
     Optional<Memoire> findByIdAndTenantId(UUID id, String tenantId);
+
+        Optional<Memoire> findByIdAndTenantIdAndActifTrue(UUID id, String tenantId);
 }
