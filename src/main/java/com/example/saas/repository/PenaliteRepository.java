@@ -14,4 +14,6 @@ public interface PenaliteRepository
             String tenantId);
 
     Optional<Penalite> findByIdAndTenantId(UUID id, String tenantId);
+
+        boolean existsByTenantIdAndEmpruntId(String tenantId, UUID empruntId);
 }

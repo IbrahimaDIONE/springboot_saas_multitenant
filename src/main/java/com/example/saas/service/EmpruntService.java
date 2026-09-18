@@ -7,6 +7,7 @@ public interface EmpruntService {
     EmpruntResponse       emprunter(EmpruntRequest request);
     List<EmpruntResponse> mesEmprunts();
     EmpruntResponse       findById(UUID id);
+    EmpruntResponse       retourner(UUID id);
     List<EmpruntResponse> findAllByTenant(String statut);
     LectureResponse       lireEnLigne(UUID empruntId);
 }

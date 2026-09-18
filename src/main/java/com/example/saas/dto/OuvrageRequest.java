@@ -11,4 +11,5 @@ public record OuvrageRequest(
         @NotBlank @Size(max = 150) String auteur,
         @NotNull String resume,
         @NotNull UUID filiereId,
-        @NotNull UUID niveauId) {}
+        @NotNull UUID niveauId,
+        UUID categorieId) {}
