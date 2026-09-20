@@ -35,8 +35,9 @@ public class MemoireController {
     public List<MemoireResponse> archives() { return service.findArchives(); }
 
     @GetMapping("/{id}") public MemoireResponse get(@PathVariable UUID id) {
+        MemoireResponse response = service.findById(id);
         consultationService.enregistrer(com.example.saas.domain.Consultation.TypeRessource.MEMOIRE, id);
-        return service.findById(id);
+        return response;
     }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public MemoireResponse create(@Valid @RequestBody MemoireRequest request) { return service.create(request); }

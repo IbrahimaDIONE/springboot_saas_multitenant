@@ -21,12 +21,17 @@ public class HistoriqueServiceImpl implements HistoriqueService {
     private final EmpruntRepository empruntRepository;
     private final ConsultationRepository consultationRepository;
     private final EtudiantRepository etudiantRepository;
+    private final OuvrageRepository ouvrageRepository;
+    private final MemoireRepository memoireRepository;
 
     public HistoriqueServiceImpl(EmpruntRepository empruntRepository,
-                                 ConsultationRepository consultationRepository, EtudiantRepository etudiantRepository) {
+                                 ConsultationRepository consultationRepository, EtudiantRepository etudiantRepository,
+                                 OuvrageRepository ouvrageRepository, MemoireRepository memoireRepository) {
         this.empruntRepository = empruntRepository;
         this.consultationRepository = consultationRepository;
         this.etudiantRepository = etudiantRepository;
+        this.ouvrageRepository = ouvrageRepository;
+        this.memoireRepository = memoireRepository;
     }
 
     @Override
@@ -51,13 +56,25 @@ public class HistoriqueServiceImpl implements HistoriqueService {
             consultations = consultationRepository.findAllByTenantIdAndEtudiantIdOrderByDateConsultationDesc(tenantId, etudiant.getId())
                     .stream()
                     .map(c -> new HistoriqueItemResponse(
-                            "CONSULTATION", c.getTypeRessource().name(), c.getRessourceId(), null,
+                            "CONSULTATION", c.getTypeRessource().name(), c.getRessourceId(),
+                            titreRessource(c),
                             null, c.getDateConsultation()));
         }
 
         return Stream.concat(emprunts, consultations)
                 .sorted(Comparator.comparing(HistoriqueItemResponse::date).reversed())
                 .toList();
+    }
+
+    private String titreRessource(Consultation consultation) {
+        return switch (consultation.getTypeRessource()) {
+            case OUVRAGE -> ouvrageRepository.findByIdAndTenantId(
+                    consultation.getRessourceId(), consultation.getTenantId())
+                    .map(Ouvrage::getTitre).orElse("(ressource supprimée)");
+            case MEMOIRE -> memoireRepository.findByIdAndTenantId(
+                    consultation.getRessourceId(), consultation.getTenantId())
+                    .map(Memoire::getTitre).orElse("(ressource supprimée)");
+        };
     }
 
     private String currentUsername() {
