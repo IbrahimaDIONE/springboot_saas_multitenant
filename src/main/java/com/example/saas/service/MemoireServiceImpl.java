@@ -1,17 +1,30 @@
 package com.example.saas.service;
 
-import com.example.saas.domain.*;
-import com.example.saas.dto.*;
-import com.example.saas.exception.ResourceNotFoundException;
-import com.example.saas.mapper.*;
-import com.example.saas.repository.*;
-import com.example.saas.storage.FileStorageService;
-import com.example.saas.tenant.TenantProvider;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import com.example.saas.domain.Fichier;
+import com.example.saas.domain.Filiere;
+import com.example.saas.domain.Memoire;
+import com.example.saas.domain.Niveau;
+import com.example.saas.dto.FichierDownloadResponse;
+import com.example.saas.dto.FichierResponse;
+import com.example.saas.dto.MemoireRequest;
+import com.example.saas.dto.MemoireResponse;
+import com.example.saas.exception.ResourceNotFoundException;
+import com.example.saas.mapper.FichierMapper;
+import com.example.saas.mapper.MemoireMapper;
+import com.example.saas.repository.FichierRepository;
+import com.example.saas.repository.FiliereRepository;
+import com.example.saas.repository.MemoireRepository;
+import com.example.saas.repository.NiveauRepository;
+import com.example.saas.storage.FileStorageService;
+import com.example.saas.tenant.TenantProvider;
 
 @Service
 @Transactional
@@ -86,11 +99,36 @@ public class MemoireServiceImpl implements MemoireService {
     public FichierResponse ajouterFichier(UUID memoireId, MultipartFile file) {
         Memoire memoire = findEntity(memoireId);
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("Fichier vide");
-        if (!"application/pdf".equals(file.getContentType()))
+        if (!estUnPdf(file))
             throw new IllegalArgumentException("Seuls les fichiers PDF sont acceptés");
         String chemin = storage.store(tenant(), memoireId, file);
-        Fichier fichier = new Fichier(tenant(), memoire, file.getOriginalFilename(), chemin, file.getSize(), file.getContentType());
+        Fichier fichier = new Fichier(tenant(), memoire, nomFichier(file), chemin, file.getSize(), "application/pdf");
         return fichierMapper.toResponse(fichierRepository.save(fichier));
+    }
+
+    private boolean estUnPdf(MultipartFile file) {
+        String contentType = file.getContentType();
+        boolean typeCompatible = contentType == null
+                || contentType.isBlank()
+                || "application/pdf".equalsIgnoreCase(contentType)
+                || "application/octet-stream".equalsIgnoreCase(contentType);
+        if (!typeCompatible) return false;
+        try {
+            byte[] signature = file.getBytes();
+            return signature.length >= 5
+                    && signature[0] == '%'
+                    && signature[1] == 'P'
+                    && signature[2] == 'D'
+                    && signature[3] == 'F'
+                    && signature[4] == '-';
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Impossible de vérifier le fichier PDF", e);
+        }
+    }
+
+    private String nomFichier(MultipartFile file) {
+        String original = file.getOriginalFilename();
+        return original == null || original.isBlank() ? "document.pdf" : original;
     }
     public void supprimerFichier(UUID memoireId, UUID fichierId) {
         Fichier fichier = findFichier(memoireId, fichierId);

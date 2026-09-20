@@ -706,7 +706,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/products?search=Clavier&categoryId={{categoryId}}",
+              "raw": "{{baseUrl}}/api/ouvrages?search=algorithmique",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -825,7 +825,7 @@
               "raw": "{\"name\":\"Dock USB-C\",\"price\":129.90,\"stock\":10,\"imageUrl\":\"https://placehold.co/600x400?text=Dock\",\"categoryId\":\"{{categoryId}}\"}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/products",
+              "raw": "{{baseUrl}}/api/ouvrages",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -893,7 +893,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/products/{{productId}}",
+              "raw": "{{baseUrl}}/api/ouvrages/{{ouvrageId}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -1387,15 +1387,18 @@
           "name": "Étudiant - lister les ouvrages",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{baseUrl}}/api/ouvrages"
           },
           "response": []
         },
         {
           "name": "Login client-b (admin)",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},
+            "url": "{{baseUrl}}/api/auth/login"
           },
           "response": []
         },
@@ -1403,7 +1406,8 @@
           "name": "Lister les filières",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{baseUrl}}/api/filieres"
           },
           "response": []
         },
@@ -1411,23 +1415,27 @@
           "name": "Lister les niveaux",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{baseUrl}}/api/niveaux"
           },
           "response": []
         },
         {
           "name": "Admin établissement - créer un ouvrage",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"titre\":\"Ouvrage Postman\",\"auteur\":\"Auteur Postman\",\"resume\":\"Résumé de test\",\"filiereId\":\"{{filiereId}}\",\"niveauId\":\"{{niveauId}}\",\"categorieId\":\"{{categoryId}}\"}"},
+            "url": "{{baseUrl}}/api/ouvrages"
           },
           "response": []
         },
         {
           "name": "Admin établissement - archiver l'ouvrage",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/ouvrages/{{ouvrageId}}/archiver"
           },
           "response": []
         }
@@ -1439,16 +1447,20 @@
         {
           "name": "Admin établissement - créer un mémoire",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"titre\":\"Mémoire Postman\",\"auteur\":\"Auteur Postman\",\"encadreur\":\"Encadreur Postman\",\"resume\":\"Résumé de test\",\"annee\":2026,\"filiereId\":\"{{filiereId}}\",\"niveauId\":\"{{niveauId}}\"}"},
+            "url": "{{baseUrl}}/api/memoires"
           },
           "response": []
         },
         {
           "name": "Admin établissement - ajouter un fichier",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [],
+            "body": {"mode":"formdata","formdata":[{"key":"file","type":"file","src":""}]},
+            "url": "{{baseUrl}}/api/memoires/{{memoireId}}/fichiers"
           },
           "response": []
         },
@@ -1456,15 +1468,17 @@
           "name": "Consulter le mémoire (avec fichiers)",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{baseUrl}}/api/memoires/{{memoireId}}"
           },
           "response": []
         },
         {
           "name": "Admin établissement - archiver le mémoire",
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/memoires/{{memoireId}}/archiver"
           },
           "response": []
         },
@@ -1472,7 +1486,8 @@
           "name": "Étudiant - lister les mémoires",
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{baseUrl}}/api/memoires"
           },
           "response": []
         }
@@ -1486,9 +1501,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": ""
-            }
+            "url": "{{baseUrl}}/api/favoris"
           },
           "response": []
         },
@@ -1497,31 +1510,26 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": ""
-            }
+            "url": "{{baseUrl}}/api/favoris"
           },
           "response": []
         },
         {
           "name": "Etudiant-Ajouter un favori",
           "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": ""
-            }
+            "method": "POST",
+            "header": [{"key":"Content-Type","value":"application/json"}],
+            "body": {"mode":"raw","raw":"{\"typeRessource\":\"OUVRAGE\",\"ressourceId\":\"{{ouvrageId}}\"}"},
+            "url": "{{baseUrl}}/api/favoris"
           },
           "response": []
         },
         {
           "name": "retirer un favori",
           "request": {
-            "method": "GET",
+            "method": "DELETE",
             "header": [],
-            "url": {
-              "raw": ""
-            }
+            "url": "{{baseUrl}}/api/favoris/{{favoriId}}"
           },
           "response": []
         },
@@ -1530,9 +1538,7 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": ""
-            }
+            "url": "{{baseUrl}}/api/memoires/{{memoireId}}"
           },
           "response": []
         },
@@ -1541,12 +1547,47 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": {
-              "raw": ""
-            }
+            "url": "{{baseUrl}}/api/historique"
           },
           "response": []
         }
+      ]
+    },
+    {
+      "name": "Couverture API complète",
+      "item": [
+        {"name":"Lister les ouvrages archivés","request":{"method":"GET","url":"{{baseUrl}}/api/ouvrages/archives"}},
+        {"name":"Consulter un ouvrage","request":{"method":"GET","url":"{{baseUrl}}/api/ouvrages/{{ouvrageId}}"}},
+        {"name":"Modifier un ouvrage","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"titre\":\"Ouvrage modifié\",\"auteur\":\"Auteur\",\"resume\":\"Résumé\",\"filiereId\":\"{{filiereId}}\",\"niveauId\":\"{{niveauId}}\",\"categorieId\":\"{{categoryId}}\"}"},"url":"{{baseUrl}}/api/ouvrages/{{ouvrageId}}"}},
+        {"name":"Réactiver un ouvrage","request":{"method":"PATCH","url":"{{baseUrl}}/api/ouvrages/{{ouvrageId}}/reactiver"}},
+        {"name":"Modifier une catégorie","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nom\":\"Catégorie modifiée\"}"},"url":"{{baseUrl}}/api/categories/{{categoryId}}"}},
+        {"name":"Supprimer une catégorie","request":{"method":"DELETE","url":"{{baseUrl}}/api/categories/{{categoryId}}"}},
+        {"name":"Modifier une filière","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nom\":\"Filière modifiée\"}"},"url":"{{baseUrl}}/api/filieres/{{filiereId}}"}},
+        {"name":"Supprimer une filière","request":{"method":"DELETE","url":"{{baseUrl}}/api/filieres/{{filiereId}}"}},
+        {"name":"Modifier un niveau","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nom\":\"Niveau modifié\"}"},"url":"{{baseUrl}}/api/niveaux/{{niveauId}}"}},
+        {"name":"Supprimer un niveau","request":{"method":"DELETE","url":"{{baseUrl}}/api/niveaux/{{niveauId}}"}},
+        {"name":"Login étudiant pour emprunts","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-c\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
+        {"name":"Créer un emprunt","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"ouvrageId\":\"{{ouvrageId}}\"}"},"url":"{{baseUrl}}/api/emprunts"}},
+        {"name":"Lister mes emprunts","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/mes-emprunts"}},
+        {"name":"Consulter un emprunt","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/{{empruntId}}"}},
+        {"name":"Lire un ouvrage emprunté","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/{{empruntId}}/lire"}},
+        {"name":"Login admin établissement pour emprunts","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
+        {"name":"Lister les emprunts du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts?statut=ACTIF"}},
+        {"name":"Retourner un emprunt","request":{"method":"PATCH","url":"{{baseUrl}}/api/emprunts/{{empruntId}}/retour"}},
+        {"name":"Consulter le dashboard","request":{"method":"GET","url":"{{baseUrl}}/api/dashboard/etablissement"}},
+        {"name":"Lister les notifications du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/notifications"}},
+        {"name":"Lister les pénalités du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/penalites"}},
+        {"name":"Lister les règles de pénalité","request":{"method":"GET","url":"{{baseUrl}}/api/regles-penalite"}},
+        {"name":"Lister mes notifications","request":{"method":"GET","url":"{{baseUrl}}/api/notifications/mes-notifications"}},
+        {"name":"Lister mes pénalités","request":{"method":"GET","url":"{{baseUrl}}/api/penalites/mes-penalites"}},
+        {"name":"Compter les notifications non lues","request":{"method":"GET","url":"{{baseUrl}}/api/notifications/compter-non-lues"}},
+        {"name":"Lister les mémoires archivés","request":{"method":"GET","url":"{{baseUrl}}/api/memoires/archives"}},
+        {"name":"Modifier un mémoire","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"titre\":\"Mémoire modifié\",\"auteur\":\"Auteur\",\"encadreur\":\"Encadreur\",\"resume\":\"Résumé\",\"annee\":2026,\"filiereId\":\"{{filiereId}}\",\"niveauId\":\"{{niveauId}}\"}"},"url":"{{baseUrl}}/api/memoires/{{memoireId}}"}},
+        {"name":"Réactiver un mémoire","request":{"method":"PATCH","url":"{{baseUrl}}/api/memoires/{{memoireId}}/reactiver"}},
+        {"name":"Télécharger un fichier de mémoire","request":{"method":"GET","url":"{{baseUrl}}/api/memoires/{{memoireId}}/fichiers/{{fichierId}}"}},
+        {"name":"Supprimer un fichier de mémoire","request":{"method":"DELETE","url":"{{baseUrl}}/api/memoires/{{memoireId}}/fichiers/{{fichierId}}"}},
+        {"name":"Modifier la disponibilité d'un fichier","request":{"method":"PATCH","url":"{{baseUrl}}/api/memoires/{{memoireId}}/fichiers/{{fichierId}}/disponibilite?disponible=false"}},
+        {"name":"Marquer une notification comme lue","request":{"method":"PATCH","url":"{{baseUrl}}/api/notifications/{{notificationId}}/lire"}}
       ]
     }
   ],
