@@ -29,8 +29,9 @@ public class OuvrageController {
     public List<OuvrageResponse> archives() { return service.findArchives(); }
 
     @GetMapping("/{id}") public OuvrageResponse get(@PathVariable UUID id) {
+        OuvrageResponse response = service.findById(id);
         consultationService.enregistrer(com.example.saas.domain.Consultation.TypeRessource.OUVRAGE, id);
-        return service.findById(id);
+        return response;
     }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public OuvrageResponse create(@Valid @RequestBody OuvrageRequest request) { return service.create(request); }
