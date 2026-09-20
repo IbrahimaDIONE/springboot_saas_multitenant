@@ -22,7 +22,8 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, UUID> {
 
         Optional<Etudiant> findByUtilisateur_UsernameIgnoreCaseAndUtilisateur_TenantId(
             String username, String tenantId);
-
+    @Query("select e from Etudiant e where lower(e.utilisateur.username) = lower(:username) and e.utilisateur.tenantId = :tenantId")
+    Optional<Etudiant> findByUsernameEtTenant(@Param("username") String username, @Param("tenantId") String tenantId);
     @Query("select e from Etudiant e where lower(e.utilisateur.username) = lower(:username)")
     Optional<Etudiant> findByUtilisateurUsername(@Param("username") String username);
 

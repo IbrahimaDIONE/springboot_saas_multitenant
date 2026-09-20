@@ -13,7 +13,11 @@ import java.util.*;
 @PreAuthorize("hasAnyRole('ADMIN_PLATEFORME','ADMIN_ETABLISSEMENT','ETUDIANT')")
 public class OuvrageController {
     private final OuvrageService service;
-    public OuvrageController(OuvrageService service) { this.service = service; }
+    private final com.example.saas.service.ConsultationService consultationService;
+    public OuvrageController(OuvrageService service, com.example.saas.service.ConsultationService consultationService) {
+        this.service = service;
+        this.consultationService = consultationService;
+    }
 
     @GetMapping
     public List<OuvrageResponse> list(@RequestParam(required = false) String search,
@@ -24,8 +28,10 @@ public class OuvrageController {
     @GetMapping("/archives") @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public List<OuvrageResponse> archives() { return service.findArchives(); }
 
-    @GetMapping("/{id}") public OuvrageResponse get(@PathVariable UUID id) { return service.findById(id); }
-
+    @GetMapping("/{id}") public OuvrageResponse get(@PathVariable UUID id) {
+        consultationService.enregistrer(com.example.saas.domain.Consultation.TypeRessource.OUVRAGE, id);
+        return service.findById(id);
+    }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public OuvrageResponse create(@Valid @RequestBody OuvrageRequest request) { return service.create(request); }
 

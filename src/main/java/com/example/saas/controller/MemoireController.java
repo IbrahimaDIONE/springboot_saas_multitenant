@@ -19,8 +19,11 @@ import java.util.*;
 @PreAuthorize("hasAnyRole('ADMIN_PLATEFORME','ADMIN_ETABLISSEMENT','ETUDIANT')")
 public class MemoireController {
     private final MemoireService service;
-    public MemoireController(MemoireService service) { this.service = service; }
-
+    private final com.example.saas.service.ConsultationService consultationService;
+    public MemoireController(MemoireService service, com.example.saas.service.ConsultationService consultationService) {
+        this.service = service;
+        this.consultationService = consultationService;
+    }
     @GetMapping
     public List<MemoireResponse> list(@RequestParam(required = false) String search,
                                       @RequestParam(required = false) UUID filiereId, @RequestParam(required = false) UUID niveauId,
@@ -31,8 +34,10 @@ public class MemoireController {
     @GetMapping("/archives") @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public List<MemoireResponse> archives() { return service.findArchives(); }
 
-    @GetMapping("/{id}") public MemoireResponse get(@PathVariable UUID id) { return service.findById(id); }
-
+    @GetMapping("/{id}") public MemoireResponse get(@PathVariable UUID id) {
+        consultationService.enregistrer(com.example.saas.domain.Consultation.TypeRessource.MEMOIRE, id);
+        return service.findById(id);
+    }
     @PostMapping @ResponseStatus(HttpStatus.CREATED) @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public MemoireResponse create(@Valid @RequestBody MemoireRequest request) { return service.create(request); }
 
