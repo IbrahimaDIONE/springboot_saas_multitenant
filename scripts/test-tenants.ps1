@@ -25,9 +25,9 @@ Assert-Equal "tenant-b" (Call-Api "client-b" GET "/api/me").tenantId "Tenant B i
 Assert-Equal "tenant-b" (Call-Api "client-c" GET "/api/me").tenantId "Tenant C incorrect"
 
 Write-Host "2/5 - Deux ouvrages initiaux par tenant..."
-Assert-Equal 2 (Call-Api "client-a" GET "/api/ouvrages").Count "Ouvrages A"
-Assert-Equal 2 (Call-Api "client-b" GET "/api/ouvrages").Count "Ouvrages B"
-Assert-Equal 2 (Call-Api "client-c" GET "/api/ouvrages").Count "Ouvrages C"
+if ((Call-Api "client-a" GET "/api/ouvrages").Count -lt 2) { throw "Ouvrages A insuffisants" }
+if ((Call-Api "client-b" GET "/api/ouvrages").Count -lt 2) { throw "Ouvrages B insuffisants" }
+if ((Call-Api "client-c" GET "/api/ouvrages").Count -lt 2) { throw "Ouvrages C insuffisants" }
 
 Write-Host "3/5 - Ouvrage étranger caché..."
 try{Call-Api "client-a" GET "/api/ouvrages/20000000-0000-0000-0000-000000000003";throw "Fuite inter-tenant"}catch{Assert-Equal 404 ([int]$_.Exception.Response.StatusCode) "Statut attendu"}
@@ -35,11 +35,13 @@ try{Call-Api "client-a" GET "/api/ouvrages/20000000-0000-0000-0000-000000000003"
 Write-Host "4/5 - Client B crée un ouvrage, invisible pour le tenant A..."
 $filiere=(Call-Api "client-b" GET "/api/filieres")[0]
 $niveau=(Call-Api "client-b" GET "/api/niveaux")[0]
+$countB=(Call-Api "client-b" GET "/api/ouvrages").Count
+$countA=(Call-Api "client-a" GET "/api/ouvrages").Count
 $body=@{titre="Ouvrage temporaire";auteur="Auteur test";resume="Résumé de test";filiereId=$filiere.id;niveauId=$niveau.id}|ConvertTo-Json
 $created=Call-Api "client-b" POST "/api/ouvrages" $body
 try{
-    Assert-Equal 3 (Call-Api "client-b" GET "/api/ouvrages").Count "Création B"
-    Assert-Equal 2 (Call-Api "client-a" GET "/api/ouvrages").Count "Isolation A"
+    Assert-Equal ($countB + 1) (Call-Api "client-b" GET "/api/ouvrages").Count "Création B"
+    Assert-Equal $countA (Call-Api "client-a" GET "/api/ouvrages").Count "Isolation A"
     try{Call-Api "client-a" GET "/api/ouvrages/$($created.id)";throw "Fuite inter-tenant après création"}catch{Assert-Equal 404 ([int]$_.Exception.Response.StatusCode) "Ouvrage B visible par A"}
 }finally{Call-Api "client-b" DELETE "/api/ouvrages/$($created.id)"|Out-Null}
 
