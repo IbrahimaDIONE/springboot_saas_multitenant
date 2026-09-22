@@ -62,7 +62,7 @@
                 "exec": [
                   "pm.test('Rôles admin plateforme', () => {",
                   "  const r = pm.response.json();",
-                  "  pm.expect(r.roles).to.include('ADMIN_PLATEFORME');",
+                  "  pm.expect(r.authorities).to.include('ADMIN_PLATEFORME');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -410,7 +410,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Sciences\"}"
+              "raw": "{\"nom\":\"Sciences\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -517,7 +517,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Interdit\"}"
+              "raw": "{\"nom\":\"Interdit\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -595,7 +595,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Plateforme\"}"
+              "raw": "{\"nom\":\"Plateforme\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/categories",
@@ -693,10 +693,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Recherche catalogue autorisée', () => pm.response.to.have.status(200));",
-                  "const products = pm.response.json();",
-                  "pm.expect(products).to.have.lengthOf(1);",
-                  "pm.expect(products[0].name).to.eql('Clavier Acme');"
+                  "pm.test('Recherche ouvrages autorisée', () => pm.response.to.have.status(200));",
+                  "const ouvrages = pm.response.json();",
+                  "pm.expect(ouvrages).to.have.lengthOf(1);",
+                  "pm.expect(ouvrages[0].titre).to.eql('Algorithmique fondamentale');"
                 ],
                 "type": "text/javascript"
               }
@@ -712,16 +712,12 @@
               ],
               "path": [
                 "api",
-                "products"
+                "ouvrages"
               ],
               "query": [
                 {
                   "key": "search",
-                  "value": "Clavier"
-                },
-                {
-                  "key": "categoryId",
-                  "value": "{{categoryId}}"
+                  "value": "algorithmique"
                 }
               ]
             }
@@ -806,7 +802,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.collectionVariables.set('productId', pm.response.json().id);"
+                  "pm.test('Ouvrage créé', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('ouvrageId', pm.response.json().id);"
                 ],
                 "type": "text/javascript"
               }
@@ -822,16 +819,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\"name\":\"Dock USB-C\",\"price\":129.90,\"stock\":10,\"imageUrl\":\"https://placehold.co/600x400?text=Dock\",\"categoryId\":\"{{categoryId}}\"}"
+              "raw": "{\"titre\":\"Ouvrage Postman B\",\"auteur\":\"Auteur Postman\",\"resume\":\"Résumé de test\",\"filiereId\":\"31000000-0000-0000-0000-000000000002\",\"niveauId\":\"32000000-0000-0000-0000-000000000002\",\"categorieId\":\"{{categoryId}}\"}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/ouvrages",
               "host": [
                 "{{baseUrl}}"
               ],
-              "path": [
+                "path": [
                 "api",
-                "products"
+                "ouvrages"
               ]
             }
           },
@@ -897,10 +894,10 @@
               "host": [
                 "{{baseUrl}}"
               ],
-              "path": [
+                "path": [
                 "api",
-                "products",
-                "{{productId}}"
+                "ouvrages",
+                "{{ouvrageId}}"
               ]
             }
           },
@@ -1385,6 +1382,7 @@
         },
         {
           "name": "Étudiant - lister les ouvrages",
+          "event": [{"listen":"test","script":{"exec":["const r = pm.response.json();","const ouvrage = r.find(item => item.actif === true);","pm.test('Ouvrage actif disponible', () => pm.expect(ouvrage).to.not.be.undefined);","if (ouvrage) pm.collectionVariables.set('ouvrageId', String(ouvrage.id));"] ,"type":"text/javascript"}}],
           "request": {
             "method": "GET",
             "header": [],
@@ -1394,6 +1392,7 @@
         },
         {
           "name": "Login client-b (admin)",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Login admin établissement', () => pm.response.to.have.status(200));","pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "POST",
             "header": [{"key":"Content-Type","value":"application/json"}],
@@ -1404,6 +1403,7 @@
         },
         {
           "name": "Lister les filières",
+          "event": [{"listen":"test","script":{"exec":["const r = pm.response.json();","pm.test('Filières disponibles', () => pm.expect(r.length).to.be.above(0));","pm.collectionVariables.set('filiereId', r[0].id);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "GET",
             "header": [],
@@ -1413,6 +1413,7 @@
         },
         {
           "name": "Lister les niveaux",
+          "event": [{"listen":"test","script":{"exec":["const r = pm.response.json();","pm.test('Niveaux disponibles', () => pm.expect(r.length).to.be.above(0));","pm.collectionVariables.set('niveauId', r[0].id);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "GET",
             "header": [],
@@ -1422,6 +1423,7 @@
         },
         {
           "name": "Admin établissement - créer un ouvrage",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Ouvrage créé', () => pm.response.to.have.status(201));","pm.collectionVariables.set('ouvrageId', pm.response.json().id);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "POST",
             "header": [{"key":"Content-Type","value":"application/json"}],
@@ -1446,6 +1448,7 @@
       "item": [
         {
           "name": "Admin établissement - créer un mémoire",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Mémoire créé', () => pm.response.to.have.status(201));","pm.collectionVariables.set('memoireId', pm.response.json().id);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "POST",
             "header": [{"key":"Content-Type","value":"application/json"}],
@@ -1459,7 +1462,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "body": {"mode":"formdata","formdata":[{"key":"file","type":"file","src":""}]},
+            "body": {"mode":"formdata","formdata":[{"key":"file","type":"file","src":"data/memoires/postman-test.pdf"}]},
             "url": "{{baseUrl}}/api/memoires/{{memoireId}}/fichiers"
           },
           "response": []
@@ -1475,6 +1478,7 @@
         },
         {
           "name": "Admin établissement - archiver le mémoire",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Mémoire archivé', () => pm.response.to.have.status(200));"] ,"type":"text/javascript"}}],
           "request": {
             "method": "PATCH",
             "header": [],
@@ -1497,6 +1501,12 @@
       "name": "Favori&Historique",
       "item": [
         {
+          "name": "Login étudiant pour favoris",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Login étudiant favoris', () => pm.response.to.have.status(200));","pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"] ,"type":"text/javascript"}}],
+          "request": {"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-c\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"},
+          "response": []
+        },
+        {
           "name": "Favori en double",
           "request": {
             "method": "GET",
@@ -1516,6 +1526,7 @@
         },
         {
           "name": "Etudiant-Ajouter un favori",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Favori créé', () => pm.response.to.have.status(201));","pm.collectionVariables.set('favoriId', pm.response.json().id);"] ,"type":"text/javascript"}}],
           "request": {
             "method": "POST",
             "header": [{"key":"Content-Type","value":"application/json"}],
@@ -1526,6 +1537,7 @@
         },
         {
           "name": "retirer un favori",
+          "event": [{"listen":"test","script":{"exec":["pm.test('Favori supprimé', () => pm.expect([200,204]).to.include(pm.response.code));"] ,"type":"text/javascript"}}],
           "request": {
             "method": "DELETE",
             "header": [],
@@ -1556,6 +1568,7 @@
     {
       "name": "Couverture API complète",
       "item": [
+        {"name":"Login admin pour couverture","event":[{"listen":"test","script":{"exec":["pm.test('Login admin couverture', () => pm.response.to.have.status(200));","pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"] ,"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
         {"name":"Lister les ouvrages archivés","request":{"method":"GET","url":"{{baseUrl}}/api/ouvrages/archives"}},
         {"name":"Consulter un ouvrage","request":{"method":"GET","url":"{{baseUrl}}/api/ouvrages/{{ouvrageId}}"}},
         {"name":"Modifier un ouvrage","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"titre\":\"Ouvrage modifié\",\"auteur\":\"Auteur\",\"resume\":\"Résumé\",\"filiereId\":\"{{filiereId}}\",\"niveauId\":\"{{niveauId}}\",\"categorieId\":\"{{categoryId}}\"}"},"url":"{{baseUrl}}/api/ouvrages/{{ouvrageId}}"}},
@@ -1566,16 +1579,16 @@
         {"name":"Supprimer une filière","request":{"method":"DELETE","url":"{{baseUrl}}/api/filieres/{{filiereId}}"}},
         {"name":"Modifier un niveau","request":{"method":"PUT","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nom\":\"Niveau modifié\"}"},"url":"{{baseUrl}}/api/niveaux/{{niveauId}}"}},
         {"name":"Supprimer un niveau","request":{"method":"DELETE","url":"{{baseUrl}}/api/niveaux/{{niveauId}}"}},
-        {"name":"Login étudiant pour emprunts","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-c\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
-        {"name":"Créer un emprunt","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"ouvrageId\":\"{{ouvrageId}}\"}"},"url":"{{baseUrl}}/api/emprunts"}},
+        {"name":"Login étudiant pour emprunts","auth":{"type":"noauth"},"event":[{"listen":"test","script":{"exec":["pm.test('Login étudiant emprunts', () => pm.response.to.have.status(200));","pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"] ,"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-c\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
+        {"name":"Créer un emprunt","event":[{"listen":"test","script":{"exec":["pm.test('Emprunt créé', () => pm.response.to.have.status(201));","pm.collectionVariables.set('empruntId', pm.response.json().id);"] ,"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"ouvrageId\":\"{{ouvrageId}}\"}"},"url":"{{baseUrl}}/api/emprunts"}},
         {"name":"Lister mes emprunts","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/mes-emprunts"}},
         {"name":"Consulter un emprunt","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/{{empruntId}}"}},
         {"name":"Lire un ouvrage emprunté","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts/{{empruntId}}/lire"}},
-        {"name":"Login admin établissement pour emprunts","auth":{"type":"noauth"},"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
+        {"name":"Login admin établissement pour emprunts","auth":{"type":"noauth"},"event":[{"listen":"test","script":{"exec":["pm.test('Login admin emprunts', () => pm.response.to.have.status(200));","pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"] ,"type":"text/javascript"}}],"request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"username\":\"client-b\",\"password\":\"password\"}"},"url":"{{baseUrl}}/api/auth/login"}},
         {"name":"Lister les emprunts du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/emprunts?statut=ACTIF"}},
         {"name":"Retourner un emprunt","request":{"method":"PATCH","url":"{{baseUrl}}/api/emprunts/{{empruntId}}/retour"}},
         {"name":"Consulter le dashboard","request":{"method":"GET","url":"{{baseUrl}}/api/dashboard/etablissement"}},
-        {"name":"Lister les notifications du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/notifications"}},
+        {"name":"Lister les notifications du tenant","event":[{"listen":"test","script":{"exec":["const r = pm.response.json();","if (r.length) pm.collectionVariables.set('notificationId', String(r[0].id));"],"type":"text/javascript"}}],"request":{"method":"GET","url":"{{baseUrl}}/api/notifications"}},
         {"name":"Lister les pénalités du tenant","request":{"method":"GET","url":"{{baseUrl}}/api/penalites"}},
         {"name":"Lister les règles de pénalité","request":{"method":"GET","url":"{{baseUrl}}/api/regles-penalite"}},
         {"name":"Lister mes notifications","request":{"method":"GET","url":"{{baseUrl}}/api/notifications/mes-notifications"}},
@@ -1628,7 +1641,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8080"
+      "value": "http://localhost:8081"
     },
     {
       "key": "accessToken",
@@ -1659,11 +1672,27 @@
       "value": ""
     },
     {
+      "key": "filiereId",
+      "value": ""
+    },
+    {
+      "key": "niveauId",
+      "value": ""
+    },
+    {
       "key": "memoireId",
       "value": ""
     },
     {
       "key": "favoriId",
+      "value": ""
+    },
+    {
+      "key": "fichierId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
       "value": ""
     }
   ]

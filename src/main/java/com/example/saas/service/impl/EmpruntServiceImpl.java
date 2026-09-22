@@ -1,12 +1,9 @@
 package com.example.saas.service.impl;
 
-import com.example.saas.domain.*;
-import com.example.saas.dto.*;
-import com.example.saas.exception.ResourceNotFoundException;
-import com.example.saas.mapper.EmpruntMapper;
-import com.example.saas.repository.*;
-import com.example.saas.service.EmpruntService;
-import com.example.saas.tenant.TenantContext;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,9 +11,19 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
+import com.example.saas.domain.Emprunt;
+import com.example.saas.domain.Etudiant;
+import com.example.saas.domain.Ouvrage;
+import com.example.saas.dto.EmpruntRequest;
+import com.example.saas.dto.EmpruntResponse;
+import com.example.saas.dto.LectureResponse;
+import com.example.saas.exception.ResourceNotFoundException;
+import com.example.saas.mapper.EmpruntMapper;
+import com.example.saas.repository.EmpruntRepository;
+import com.example.saas.repository.EtudiantRepository;
+import com.example.saas.repository.OuvrageRepository;
+import com.example.saas.service.EmpruntService;
+import com.example.saas.tenant.TenantContext;
 
 @Service
 @Transactional
@@ -54,7 +61,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateur_UsernameIgnoreCaseAndUtilisateur_TenantId(username, tenantId)
+                .findByUsernameEtTenant(username, tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
@@ -153,7 +160,7 @@ public class EmpruntServiceImpl implements EmpruntService {
         String username = currentUsername();
 
         Etudiant etudiant = etudiantRepository
-                .findByUtilisateur_UsernameIgnoreCaseAndUtilisateur_TenantId(username, tenantId)
+                .findByUsernameEtTenant(username, tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
 
