@@ -33,6 +33,9 @@ public class DatabaseUserDetailsService implements UserDetailsService {
                 if (!active) {
                 throw new DisabledException("Etablissement désactivé");
                 }
+                if (!user.getRoleEntity().isActif()) {
+                    throw new DisabledException("Rôle désactivé");
+                }
                 return TenantUserPrincipal.from(user);
             })
                 // Même message pour un utilisateur absent afin de limiter l'énumération de comptes.

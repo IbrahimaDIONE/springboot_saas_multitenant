@@ -18,8 +18,9 @@ public class TenantUser {
     @Column(name = "tenant_id", nullable = false, updatable = false, length = 50)
     private String tenantId;
 
-    @Column(nullable = false, length = 30)
-    private String role;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 
     @Column(nullable = false)
     private boolean enabled;
@@ -51,9 +52,9 @@ public class TenantUser {
         return tenantId;
     }
 
-    public String getRole() {
-        return role;
-    }
+    public String getRole() { return role.getCode(); }
+
+    public Role getRoleEntity() { return role; }
 
     public boolean isEnabled() {
         return enabled;
@@ -95,12 +96,18 @@ public class TenantUser {
             String nom,
             String prenom,
             String email) {
+        return newEtudiant(tenantId, username, passwordHash, nom, prenom, email, Role.system("ETUDIANT"));
+    }
+
+    public static TenantUser newEtudiant(
+            String tenantId, String username, String passwordHash, String nom, String prenom,
+            String email, Role role) {
         TenantUser user = new TenantUser();
         user.id = UUID.randomUUID();
         user.username = username;
         user.passwordHash = passwordHash;
         user.tenantId = tenantId;
-        user.role = "ETUDIANT";
+        user.role = role;
         user.enabled = false;
         user.nom = nom;
         user.prenom = prenom;
@@ -115,12 +122,19 @@ public class TenantUser {
             String nom,
             String prenom,
             String email) {
+        return newAdminEtablissement(tenantId, username, passwordHash, nom, prenom, email,
+                Role.system("ADMIN_ETABLISSEMENT"));
+    }
+
+    public static TenantUser newAdminEtablissement(
+            String tenantId, String username, String passwordHash, String nom, String prenom,
+            String email, Role role) {
         TenantUser user = new TenantUser();
         user.id = UUID.randomUUID();
         user.username = username;
         user.passwordHash = passwordHash;
         user.tenantId = tenantId;
-        user.role = "ADMIN_ETABLISSEMENT";
+        user.role = role;
         user.enabled = true;
         user.nom = nom;
         user.prenom = prenom;

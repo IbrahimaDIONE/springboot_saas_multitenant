@@ -2,6 +2,7 @@ package com.example.saas.controller;
 
 import com.example.saas.dto.EtudiantRequest;
 import com.example.saas.dto.EtudiantResponse;
+import com.example.saas.dto.ImportEtudiantsResponse;
 import com.example.saas.service.EtudiantService;
 
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +34,11 @@ public class EtudiantController {
     @ResponseStatus(HttpStatus.CREATED)
     public EtudiantResponse create(@Valid @RequestBody EtudiantRequest request) {
         return service.create(request);
+    }
+
+    @PostMapping(value = "/import-excel", consumes = "multipart/form-data")
+    public ImportEtudiantsResponse importExcel(@RequestParam("file") MultipartFile file) {
+        return service.importExcel(file);
     }
 
     @PostMapping("/{id}/activation")
