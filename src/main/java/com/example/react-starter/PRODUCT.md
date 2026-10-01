@@ -4,7 +4,7 @@
 
 BiblioUniv est une plateforme SaaS multi-tenant de gestion des bibliothèques universitaires numériques. Elle permet à chaque établissement de proposer ses ressources documentaires et ses services dans un espace sécurisé, adapté au rôle de chaque utilisateur.
 
-Le frontend consomme l’API Spring Boot existante. Il ne modifie pas son contrat et ne contourne pas une fonctionnalité manquante côté serveur.
+Le frontend consomme le contrat REST du backend. Toute capacité nouvelle est ajoutée explicitement côté serveur ; le client ne contourne pas les contrôles de sécurité.
 
 ## Profils utilisateurs
 
@@ -20,9 +20,9 @@ Gère les ressources et les services de son établissement : catalogue, étudian
 
 Gère les établissements et les rôles, et consulte les statistiques globales de la plateforme.
 
-## Périmètre de l’étape actuelle
+## Périmètre actuel
 
-Cette étape construit uniquement la base commune, avant le démarrage du lot 1 :
+La base commune est en place et le lot 1 progresse par tranches :
 
 - Connexion, déconnexion et récupération de la session courante.
 - Renouvellement de session selon le contrat de l’API.
@@ -30,7 +30,13 @@ Cette étape construit uniquement la base commune, avant le démarrage du lot 1 
 - Client HTTP partagé, gestion cohérente des erreurs 401/403 et layout commun.
 - Pages d’accueil neutres pour vérifier les espaces des trois profils, sans fonctionnalité métier.
 
-Après validation de la base commune, le lot 1 commence par l’écran **Mon profil** : consultation via `GET /api/profil` et mise à jour via `PUT /api/profil`. Le catalogue, les emprunts et les autres fonctionnalités restent à construire.
+Le lot 1 a commencé par deux tranches :
+
+- **Mon profil** : consultation via `GET /api/profil` et mise à jour via `PUT /api/profil`.
+- **Catalogue ouvrages** : recherche et filtres filière/niveau/catégorie via l’API, puis consultation du détail d’un ouvrage.
+- **Emprunts** : demande depuis la fiche, liste personnelle et accès à la lecture d’un emprunt actif.
+
+La lecture utilise `GET /api/emprunts/{id}/lire` et un téléchargement PDF protégé qui revérifie le tenant, le propriétaire et le statut actif de l’emprunt. L’admin d’établissement peut téléverser/remplacer le PDF associé à un ouvrage de son tenant ; seuls les PDF valides jusqu’à 20 Mo sont acceptés. Les fichiers sont stockés sous `OUVRAGES_STORAGE_DIR` et ne sont jamais exposés par une URL publique.
 
 ## Principes d’expérience
 
@@ -48,5 +54,9 @@ Après validation de la base commune, le lot 1 commence par l’écran **Mon pro
 - Les appels API partagent le même client et la même gestion de session.
 - Chaque profil est dirigé vers son espace et ne peut pas ouvrir la route d’un autre rôle.
 - L’étudiant peut consulter et mettre à jour son profil avec les validations prévues par l’API.
+- L’étudiant peut rechercher les ouvrages et filtrer par filière, niveau et catégorie selon les paramètres supportés par l’API.
+- L’étudiant peut créer un emprunt, le retrouver dans sa liste et ouvrir la lecture si le backend fournit une URL de document.
+- L’admin d’établissement peut téléverser un PDF uniquement pour un ouvrage de son tenant.
+- Un PDF n’est servi qu’à l’étudiant propriétaire d’un emprunt actif du tenant courant.
 - Les vues restent compréhensibles pendant le chargement et en cas d’erreur.
 - Les autres membres peuvent réutiliser les conventions et composants communs pour construire leurs lots.

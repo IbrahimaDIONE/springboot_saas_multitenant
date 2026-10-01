@@ -5,9 +5,11 @@ import com.example.saas.dto.*;
 import com.example.saas.exception.ResourceNotFoundException;
 import com.example.saas.mapper.OuvrageMapper;
 import com.example.saas.repository.*;
+import com.example.saas.storage.OuvragePdfStorageService;
 import com.example.saas.tenant.TenantProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.*;
 
 @Service
@@ -20,10 +22,12 @@ public class OuvrageServiceImpl implements OuvrageService {
     private final CategorieRepository categories;
     private final NotificationService notifications;
     private final TenantProvider tenantProvider;
+    private final OuvragePdfStorageService pdfStorage;
 
     public OuvrageServiceImpl(OuvrageRepository repository, OuvrageMapper mapper, FiliereRepository filieres,
                               NiveauRepository niveaux, CategorieRepository categories,
-                              NotificationService notifications, TenantProvider tenantProvider) {
+                              NotificationService notifications, TenantProvider tenantProvider,
+                              OuvragePdfStorageService pdfStorage) {
         this.repository = repository;
         this.mapper = mapper;
         this.filieres = filieres;
@@ -31,16 +35,17 @@ public class OuvrageServiceImpl implements OuvrageService {
         this.categories = categories;
         this.notifications = notifications;
         this.tenantProvider = tenantProvider;
+        this.pdfStorage = pdfStorage;
     }
     @Transactional(readOnly = true)
     public List<OuvrageResponse> findAll() {
         return repository.findAllByTenantIdAndActifTrueOrderByTitre(tenant()).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
-    public List<OuvrageResponse> findAll(String search, UUID filiereId, UUID niveauId) {
+    public List<OuvrageResponse> findAll(String search, UUID filiereId, UUID niveauId, UUID categorieId) {
         String term = search == null ? "" : search.trim();
-        if (term.isEmpty() && filiereId == null && niveauId == null) return findAll();
-        return repository.searchByTenantId(tenant(), term, filiereId, niveauId).stream().map(mapper::toResponse).toList();
+        if (term.isEmpty() && filiereId == null && niveauId == null && categorieId == null) return findAll();
+        return repository.searchByTenantId(tenant(), term, filiereId, niveauId, categorieId).stream().map(mapper::toResponse).toList();
     }
     @Transactional(readOnly = true)
     public List<OuvrageResponse> findArchives() {
@@ -64,6 +69,10 @@ public class OuvrageServiceImpl implements OuvrageService {
         ouvrage.update(request.titre(), request.auteur(), request.resume(), filiere(request.filiereId()), niveau(request.niveauId()));
         ouvrage.associerCategorie(categorie(request.categorieId()));
         return mapper.toResponse(ouvrage);
+    }
+    public void televerserPdf(UUID ouvrageId, MultipartFile file) {
+        Ouvrage ouvrage = findEntity(ouvrageId);
+        ouvrage.associerFichier(pdfStorage.store(tenant(), ouvrageId, file));
     }
     public OuvrageResponse archiver(UUID id) {
         Ouvrage ouvrage = findEntity(id);

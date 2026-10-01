@@ -56,7 +56,7 @@ docker compose up -d
 mvn spring-boot:run
 ```
 
-Flyway applique V1 à V6, dont `V4__biblio_users_etudiants.sql`, `V5__biblio_ouvrages_filieres_niveaux.sql` et `V6__biblio_etablissements.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`.
+Flyway applique V1 à V6, dont `V4__biblio_users_etudiants.sql`, `V5__biblio_ouvrages_filieres_niveaux.sql` et `V6__biblio_etablissements.sql`. Variables : `DB_URL`, `DB_USER`, `DB_PASSWORD`, `PORT`, `JWT_SECRET`, `OUVRAGES_STORAGE_DIR` (par défaut `./data/ouvrages`, à monter sur un volume persistant en déploiement).
 
 ## Test automatique
 

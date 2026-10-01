@@ -12,7 +12,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 20MB
-      max-request-size: 20MB
+      max-request-size: 21MB
 management.endpoints.web.exposure.include: health,info
 server.port: ${PORT:8081}
 app:
@@ -23,3 +23,4 @@ app:
       refresh-token-days: 7
   storage:
     memoires-dir: ${MEMOIRES_STORAGE_DIR:./data/memoires}
+    ouvrages-dir: ${OUVRAGES_STORAGE_DIR:./data/ouvrages}
