@@ -23,6 +23,7 @@ import com.example.saas.repository.EmpruntRepository;
 import com.example.saas.repository.EtudiantRepository;
 import com.example.saas.repository.OuvrageRepository;
 import com.example.saas.service.EmpruntService;
+import com.example.saas.storage.OuvragePdfStorageService;
 import com.example.saas.tenant.TenantContext;
 
 @Service
@@ -35,16 +36,19 @@ public class EmpruntServiceImpl implements EmpruntService {
     private final OuvrageRepository  ouvrageRepository;
     private final EtudiantRepository etudiantRepository;
     private final EmpruntMapper      mapper;
+        private final OuvragePdfStorageService pdfStorage;
 
     public EmpruntServiceImpl(
             EmpruntRepository empruntRepository,
             OuvrageRepository ouvrageRepository,
             EtudiantRepository etudiantRepository,
-            EmpruntMapper mapper) {
+            EmpruntMapper mapper,
+            OuvragePdfStorageService pdfStorage) {
         this.empruntRepository  = empruntRepository;
         this.ouvrageRepository  = ouvrageRepository;
         this.etudiantRepository = etudiantRepository;
         this.mapper             = mapper;
+        this.pdfStorage         = pdfStorage;
     }
 
         /** Récupère le username de l'utilisateur connecté depuis le JWT. */
@@ -156,6 +160,27 @@ public class EmpruntServiceImpl implements EmpruntService {
     @Override
     @Transactional(readOnly = true)
     public LectureResponse lireEnLigne(UUID empruntId) {
+                Emprunt emprunt = empruntLisible(empruntId);
+                Ouvrage ouvrage = emprunt.getOuvrage();
+                String urlFichier = ouvrage.getUrlFichier() == null
+                                ? null
+                                : "/api/emprunts/" + empruntId + "/lire/fichier";
+                return new LectureResponse(emprunt.getId(), ouvrage.getId(), ouvrage.getTitre(), urlFichier);
+        }
+
+        @Override
+        @Transactional(readOnly = true)
+        public byte[] lireFichier(UUID empruntId) {
+                Emprunt emprunt = empruntLisible(empruntId);
+                Ouvrage ouvrage = emprunt.getOuvrage();
+                String storedKey = ouvrage.getUrlFichier();
+                if (storedKey == null || storedKey.isBlank()) {
+                        throw new ResourceNotFoundException("Document PDF indisponible");
+                }
+                return pdfStorage.read(TenantContext.get(), ouvrage.getId(), storedKey);
+        }
+
+        private Emprunt empruntLisible(UUID empruntId) {
         String tenantId = TenantContext.get();
         String username = currentUsername();
 
@@ -177,13 +202,7 @@ public class EmpruntServiceImpl implements EmpruntService {
             throw new IllegalStateException(
                     "Cet emprunt est expiré. Lecture impossible.");
         }
-
-        return new LectureResponse(
-                emprunt.getId(),
-                emprunt.getOuvrage().getId(),
-                emprunt.getOuvrage().getTitre(),
-                emprunt.getOuvrage().getUrlFichier()
-        );
+        return emprunt;
     }
 
         private boolean isStudent() {

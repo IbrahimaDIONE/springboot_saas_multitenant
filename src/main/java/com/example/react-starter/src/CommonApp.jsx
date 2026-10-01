@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, BookOpenCheck, CircleHelp, LogOut, UserRound } from 'lucide-react'
 import { useAuth } from './auth/useAuth.js'
+import BookPdfManagementPage from './features/admin/BookPdfManagementPage.jsx'
+import BookCatalogPage from './features/catalog/BookCatalogPage.jsx'
+import BookDetailPage from './features/catalog/BookDetailPage.jsx'
+import MyLoansPage from './features/loans/MyLoansPage.jsx'
+import OnlineReadingPage from './features/loans/OnlineReadingPage.jsx'
+import ProfilePage from './features/profile/ProfilePage.jsx'
 import './App.css'
 
 const roleLabels = {
@@ -23,6 +29,12 @@ function AppRoutes() {
     <Route path="/login" element={user ? <Navigate to={homeByRole[user.role]} replace /> : <LoginPage />} />
     <Route path="/403" element={<ForbiddenPage />} />
     <Route path="/app/etudiant" element={<RoleRoute role="ETUDIANT"><RoleHome /></RoleRoute>} />
+    <Route path="/app/etudiant/profil" element={<RoleRoute role="ETUDIANT"><ProfilePage /></RoleRoute>} />
+    <Route path="/app/etudiant/catalogue" element={<RoleRoute role="ETUDIANT"><BookCatalogPage /></RoleRoute>} />
+    <Route path="/app/etudiant/catalogue/:ouvrageId" element={<RoleRoute role="ETUDIANT"><BookDetailPage /></RoleRoute>} />
+    <Route path="/app/etudiant/emprunts" element={<RoleRoute role="ETUDIANT"><MyLoansPage /></RoleRoute>} />
+    <Route path="/app/etudiant/emprunts/:empruntId/lire" element={<RoleRoute role="ETUDIANT"><OnlineReadingPage /></RoleRoute>} />
+    <Route path="/app/etablissement/documents" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookPdfManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><RoleHome /></RoleRoute>} />
     <Route path="/app/plateforme" element={<RoleRoute role="ADMIN_PLATEFORME"><RoleHome /></RoleRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
@@ -93,6 +105,7 @@ function LoginPage() {
 function AppLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   async function handleLogout() {
     try {
@@ -106,7 +119,13 @@ function AppLayout({ children }) {
     <aside className="sidebar">
       <Brand />
       <span className="nav-caption">ESPACE DE TRAVAIL</span>
-      <nav className="main-nav" aria-label="Navigation principale"><div className="nav-item active"><BookOpenCheck size={18} />Accueil</div></nav>
+      <nav className="main-nav" aria-label="Navigation principale">
+        <NavLink to={homeByRolePath(user.role)} end className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Accueil</NavLink>
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/catalogue" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Catalogue</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Mes emprunts</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/profil" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><UserRound size={18} />Mon profil</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/documents" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Documents ouvrages</NavLink>}
+      </nav>
       <div className="sidebar-bottom">
         <a className="nav-item help-link" href="mailto:bibliotheque@universite.edu"><CircleHelp size={18} />Aide</a>
         <button className="nav-item logout-link" onClick={handleLogout}><LogOut size={18} />Se déconnecter</button>
@@ -115,12 +134,16 @@ function AppLayout({ children }) {
     </aside>
     <main className="main-area">
       <header className="topbar">
-        <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>Accueil</strong></div>
+        <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{location.pathname.endsWith('/profil') ? 'Mon profil' : location.pathname.includes('/catalogue') ? 'Catalogue des ouvrages' : location.pathname.includes('/emprunts') ? 'Mes emprunts' : location.pathname.endsWith('/documents') ? 'Documents ouvrages' : 'Accueil'}</strong></div>
         <div className="topbar-actions"><span className="role-pill">{roleLabels[user.role]}</span>{user.tenantId && <span className="tenant-label">{user.tenantId}</span>}</div>
       </header>
       {children}
     </main>
   </div>
+}
+
+function homeByRolePath(role) {
+  return { ETUDIANT: '/app/etudiant', ADMIN_ETABLISSEMENT: '/app/etablissement', ADMIN_PLATEFORME: '/app/plateforme' }[role]
 }
 
 function ForbiddenPage() {

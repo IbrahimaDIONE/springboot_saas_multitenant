@@ -23,11 +23,17 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 - Les couleurs ne portent jamais seules une information : associer un libellé ou une icône.
 - Composants de référence : recherche, filtres, carte d'ouvrage, badge d'état, bouton principal, navigation et formulaire.
 
-## Écrans de la base commune
+## Écrans de référence
 
 1. **Connexion** : formulaire sobre, identité BiblioUniv et retours d'erreur accessibles.
 2. **Accueil protégé** : shell partagé, identité de session et espace d'accueil neutre adapté au rôle.
 3. **Accès refusé** : explication claire et retour vers l'espace autorisé.
+4. **Mon profil** : consultation et modification des informations personnelles par l'étudiant.
+5. **Catalogue ouvrages** : recherche, filtres pris en charge par l'API et cartes lisibles.
+6. **Détail d'ouvrage** : métadonnées, filière, niveau et résumé.
+7. **Mes emprunts** : statuts, dates d'échéance et accès à la lecture des emprunts actifs.
+8. **Lecture en ligne** : document intégré quand l'API renvoie une URL, état indisponible sinon.
+9. **Documents ouvrages** : téléversement et remplacement réservé à l'administrateur établissement.
 
 ## Comportement et accessibilité
 
@@ -38,4 +44,4 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 
 ## Limite de cette référence
 
-Les écrans métier des lots ne font pas partie de cette étape. L'authentification et la session utilisent le contrat backend existant.
+L’administration des documents est réservée à l’admin établissement. Le téléchargement PDF est servi après vérification du tenant, du propriétaire et de l’emprunt actif ; un ouvrage sans fichier présente un état indisponible. Le serveur contrôle le type PDF et limite les fichiers à 20 Mo.

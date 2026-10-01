@@ -10,4 +10,5 @@ public interface EmpruntService {
     EmpruntResponse       retourner(UUID id);
     List<EmpruntResponse> findAllByTenant(String statut);
     LectureResponse       lireEnLigne(UUID empruntId);
+    byte[]                lireFichier(UUID empruntId);
 }

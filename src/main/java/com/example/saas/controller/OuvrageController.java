@@ -4,7 +4,9 @@ import com.example.saas.dto.*;
 import com.example.saas.service.OuvrageService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
 
@@ -21,8 +23,10 @@ public class OuvrageController {
 
     @GetMapping
     public List<OuvrageResponse> list(@RequestParam(required = false) String search,
-                                      @RequestParam(required = false) UUID filiereId, @RequestParam(required = false) UUID niveauId) {
-        return service.findAll(search, filiereId, niveauId);
+                                      @RequestParam(required = false) UUID filiereId,
+                                      @RequestParam(required = false) UUID niveauId,
+                                      @RequestParam(required = false) UUID categorieId) {
+        return service.findAll(search, filiereId, niveauId, categorieId);
     }
 
     @GetMapping("/archives") @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
@@ -38,6 +42,13 @@ public class OuvrageController {
 
     @PutMapping("/{id}") @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public OuvrageResponse update(@PathVariable UUID id, @Valid @RequestBody OuvrageRequest request) { return service.update(id, request); }
+
+    @PostMapping(value = "/{id}/fichier", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
+    public void televerserPdf(@PathVariable UUID id, @RequestParam("file") MultipartFile file) {
+        service.televerserPdf(id, file);
+    }
 
     @PatchMapping("/{id}/archiver") @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
     public OuvrageResponse archiver(@PathVariable UUID id) { return service.archiver(id); }
