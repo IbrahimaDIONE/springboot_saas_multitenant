@@ -19,19 +19,16 @@ public class EtablissementServiceImpl implements EtablissementService {
     private final TenantUserRepository users;
     private final OuvrageRepository ouvrages;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roles;
 
     public EtablissementServiceImpl(
             EtablissementRepository etablissements,
             TenantUserRepository users,
             OuvrageRepository ouvrages,
-            PasswordEncoder passwordEncoder,
-            RoleRepository roles) {
+            PasswordEncoder passwordEncoder) {
         this.etablissements = etablissements;
         this.users = users;
         this.ouvrages = ouvrages;
         this.passwordEncoder = passwordEncoder;
-        this.roles = roles;
     }
 
     @Override
@@ -47,8 +44,7 @@ public class EtablissementServiceImpl implements EtablissementService {
         AdminEtablissementRequest admin = request.administrateur();
         users.save(TenantUser.newAdminEtablissement(
                 saved.getCode(), admin.username(), passwordEncoder.encode(admin.password()),
-                admin.nom(), admin.prenom(), admin.email(), roles.findByCodeIgnoreCase(ADMIN_ROLE)
-                    .orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable: " + ADMIN_ROLE))));
+                admin.nom(), admin.prenom(), admin.email(), ADMIN_ROLE));
         return toResponse(saved);
     }
 

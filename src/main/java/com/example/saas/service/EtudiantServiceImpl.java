@@ -8,7 +8,6 @@ import com.example.saas.dto.ImportEtudiantsResponse;
 import com.example.saas.exception.ResourceNotFoundException;
 import com.example.saas.repository.EtudiantRepository;
 import com.example.saas.repository.TenantUserRepository;
-import com.example.saas.repository.RoleRepository;
 import com.example.saas.tenant.TenantProvider;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,25 +34,17 @@ public class EtudiantServiceImpl implements EtudiantService {
     private final EtudiantRepository etudiants;
     private final TenantProvider tenant;
     private final PasswordEncoder passwordEncoder;
-    private final RoleRepository roles;
 
     @Autowired
     public EtudiantServiceImpl(
             TenantUserRepository users,
             EtudiantRepository etudiants,
             TenantProvider tenant,
-            PasswordEncoder passwordEncoder,
-            RoleRepository roles) {
+            PasswordEncoder passwordEncoder) {
         this.users = users;
         this.etudiants = etudiants;
         this.tenant = tenant;
         this.passwordEncoder = passwordEncoder;
-        this.roles = roles;
-    }
-
-    public EtudiantServiceImpl(TenantUserRepository users, EtudiantRepository etudiants,
-                               TenantProvider tenant, PasswordEncoder passwordEncoder) {
-        this(users, etudiants, tenant, passwordEncoder, null);
     }
 
     @Override
@@ -76,17 +67,13 @@ public class EtudiantServiceImpl implements EtudiantService {
                         passwordEncoder.encode(request.password()),
                         request.nom(),
                         request.prenom(),
-                        request.email(), role("ETUDIANT"));
+                        request.email(),
+                        "ETUDIANT");
         TenantUser savedUser = users.save(user);
         Etudiant etudiant = new Etudiant(savedUser);
         etudiant.setFiliereId(request.filiereId());
         etudiant.setNiveauId(request.niveauId());
         return toResponse(etudiants.save(etudiant));
-    }
-
-    private com.example.saas.domain.Role role(String code) {
-        return roles == null ? com.example.saas.domain.Role.system(code) :
-                roles.findByCodeIgnoreCase(code).orElseThrow(() -> new ResourceNotFoundException("Rôle introuvable: " + code));
     }
 
     @Override
