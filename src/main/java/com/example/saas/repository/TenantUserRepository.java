@@ -14,9 +14,9 @@ public interface TenantUserRepository extends JpaRepository<TenantUser, UUID> {
 
     boolean existsByUsernameIgnoreCase(String username);
 
-    @Query("select u from TenantUser u where u.tenantId = :tenantId and u.role.code = :role order by u.nom, u.prenom")
+    @Query("select u from TenantUser u where u.tenantId = :tenantId and u.role = :role order by u.nom, u.prenom")
     List<TenantUser> findAllByTenantIdAndRoleOrderByNomAscPrenomAsc(@Param("tenantId") String tenantId, @Param("role") String role);
 
-    @Query("select u from TenantUser u where u.id = :id and u.tenantId = :tenantId and u.role.code = :role")
+    @Query("select u from TenantUser u where u.id = :id and u.tenantId = :tenantId and u.role = :role")
     Optional<TenantUser> findByIdAndTenantIdAndRole(@Param("id") UUID id, @Param("tenantId") String tenantId, @Param("role") String role);
 }

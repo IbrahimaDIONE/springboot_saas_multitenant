@@ -18,9 +18,8 @@ public class TenantUser {
     @Column(name = "tenant_id", nullable = false, updatable = false, length = 50)
     private String tenantId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+    @Column(name = "role", nullable = false, length = 30)
+    private String role;
 
     @Column(nullable = false)
     private boolean enabled;
@@ -52,9 +51,9 @@ public class TenantUser {
         return tenantId;
     }
 
-    public String getRole() { return role.getCode(); }
-
-    public Role getRoleEntity() { return role; }
+    public String getRole() {
+        return role;
+    }
 
     public boolean isEnabled() {
         return enabled;
@@ -96,12 +95,12 @@ public class TenantUser {
             String nom,
             String prenom,
             String email) {
-        return newEtudiant(tenantId, username, passwordHash, nom, prenom, email, Role.system("ETUDIANT"));
+        return newEtudiant(tenantId, username, passwordHash, nom, prenom, email, "ETUDIANT");
     }
 
     public static TenantUser newEtudiant(
             String tenantId, String username, String passwordHash, String nom, String prenom,
-            String email, Role role) {
+            String email, String role) {
         TenantUser user = new TenantUser();
         user.id = UUID.randomUUID();
         user.username = username;
@@ -123,12 +122,12 @@ public class TenantUser {
             String prenom,
             String email) {
         return newAdminEtablissement(tenantId, username, passwordHash, nom, prenom, email,
-                Role.system("ADMIN_ETABLISSEMENT"));
+                "ADMIN_ETABLISSEMENT");
     }
 
     public static TenantUser newAdminEtablissement(
             String tenantId, String username, String passwordHash, String nom, String prenom,
-            String email, Role role) {
+            String email, String role) {
         TenantUser user = new TenantUser();
         user.id = UUID.randomUUID();
         user.username = username;
