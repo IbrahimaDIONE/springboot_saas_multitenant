@@ -28,6 +28,7 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 1. **Connexion** : formulaire sobre, identité BiblioUniv et retours d'erreur accessibles.
 2. **Accueil protégé** : shell partagé, identité de session et espace d'accueil neutre adapté au rôle.
 3. **Accès refusé** : explication claire et retour vers l'espace autorisé.
+4. **Mon profil** : consultation et modification des informations personnelles par l'étudiant.
 
 ## Comportement et accessibilité
 
@@ -38,4 +39,4 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 
 ## Limite de cette référence
 
-Les écrans métier des lots ne font pas partie de cette étape. L'authentification et la session utilisent le contrat backend existant.
+Les autres écrans métier des lots ne font pas partie de cette première tranche. L'authentification, la session et le profil utilisent le contrat backend existant.

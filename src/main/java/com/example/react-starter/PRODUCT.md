@@ -30,7 +30,7 @@ Cette étape construit uniquement la base commune, avant le démarrage du lot 1 
 - Client HTTP partagé, gestion cohérente des erreurs 401/403 et layout commun.
 - Pages d’accueil neutres pour vérifier les espaces des trois profils, sans fonctionnalité métier.
 
-Le profil étudiant, le catalogue, les emprunts et toutes les autres fonctionnalités des lots restent à construire après validation de cette base.
+Après validation de la base commune, le lot 1 commence par l’écran **Mon profil** : consultation via `GET /api/profil` et mise à jour via `PUT /api/profil`. Le catalogue, les emprunts et les autres fonctionnalités restent à construire.
 
 ## Principes d’expérience
 
@@ -47,5 +47,6 @@ Le profil étudiant, le catalogue, les emprunts et toutes les autres fonctionnal
 - Les routes et actions réservées à un rôle sont protégées dans l’interface.
 - Les appels API partagent le même client et la même gestion de session.
 - Chaque profil est dirigé vers son espace et ne peut pas ouvrir la route d’un autre rôle.
+- L’étudiant peut consulter et mettre à jour son profil avec les validations prévues par l’API.
 - Les vues restent compréhensibles pendant le chargement et en cas d’erreur.
 - Les autres membres peuvent réutiliser les conventions et composants communs pour construire leurs lots.
