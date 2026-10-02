@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, BookOpenCheck, CircleHelp, LogOut, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, CircleHelp, ClipboardList, LogOut, ShieldAlert, UserRound } from 'lucide-react'
 import { useAuth } from './auth/useAuth.js'
 import BookPdfManagementPage from './features/admin/BookPdfManagementPage.jsx'
 import BookCatalogPage from './features/catalog/BookCatalogPage.jsx'
@@ -35,6 +35,11 @@ function AppRoutes() {
     <Route path="/app/etudiant/emprunts" element={<RoleRoute role="ETUDIANT"><MyLoansPage /></RoleRoute>} />
     <Route path="/app/etudiant/emprunts/:empruntId/lire" element={<RoleRoute role="ETUDIANT"><OnlineReadingPage /></RoleRoute>} />
     <Route path="/app/etablissement/documents" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookPdfManagementPage /></RoleRoute>} />
+    <Route path="/app/etablissement/dashboard" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Tableau de bord" /></RoleRoute>} />
+    <Route path="/app/etablissement/emprunts" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Gestion des emprunts" /></RoleRoute>} />
+    <Route path="/app/etablissement/notifications" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Notifications" /></RoleRoute>} />
+    <Route path="/app/etablissement/penalites" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Pénalités" /></RoleRoute>} />
+    <Route path="/app/plateforme/etablissements" element={<RoleRoute role="ADMIN_PLATEFORME"><Lot4Placeholder title="Établissements" /></RoleRoute>} />
     <Route path="/app/etablissement" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><RoleHome /></RoleRoute>} />
     <Route path="/app/plateforme" element={<RoleRoute role="ADMIN_PLATEFORME"><RoleHome /></RoleRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
@@ -125,6 +130,11 @@ function AppLayout({ children }) {
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Mes emprunts</NavLink>}
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/profil" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><UserRound size={18} />Mon profil</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/documents" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Documents ouvrages</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/dashboard" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ChartNoAxesColumnIncreasing size={18} />Tableau de bord</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ClipboardList size={18} />Emprunts</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/notifications" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Bell size={18} />Notifications</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/penalites" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ShieldAlert size={18} />Pénalités</NavLink>}
+        {user.role === 'ADMIN_PLATEFORME' && <NavLink to="/app/plateforme/etablissements" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Building2 size={18} />Établissements</NavLink>}
       </nav>
       <div className="sidebar-bottom">
         <a className="nav-item help-link" href="mailto:bibliotheque@universite.edu"><CircleHelp size={18} />Aide</a>
@@ -134,7 +144,7 @@ function AppLayout({ children }) {
     </aside>
     <main className="main-area">
       <header className="topbar">
-        <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{location.pathname.endsWith('/profil') ? 'Mon profil' : location.pathname.includes('/catalogue') ? 'Catalogue des ouvrages' : location.pathname.includes('/emprunts') ? 'Mes emprunts' : location.pathname.endsWith('/documents') ? 'Documents ouvrages' : 'Accueil'}</strong></div>
+        <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{getBreadcrumbLabel(location.pathname)}</strong></div>
         <div className="topbar-actions"><span className="role-pill">{roleLabels[user.role]}</span>{user.tenantId && <span className="tenant-label">{user.tenantId}</span>}</div>
       </header>
       {children}
@@ -142,6 +152,24 @@ function AppLayout({ children }) {
   </div>
 }
 
+function Lot4Placeholder({ title }) {
+  const { user } = useAuth()
+  return <section className="content common-home">
+    <span className="eyebrow">LOT 4 · {roleLabels[user.role].toUpperCase()}</span>
+    <h1>{title}</h1>
+    <p>Le routage est prêt. Cet écran attend le composant du lot 4.</p>
+  </section>
+}
+
+function getBreadcrumbLabel(pathname) {
+  if (pathname.endsWith('/dashboard')) return 'Tableau de bord'
+  if (pathname === '/app/etablissement/emprunts') return 'Gestion des emprunts'
+  if (pathname.startsWith('/app/etudiant/emprunts')) return pathname.endsWith('/lire') ? 'Lecture en ligne' : 'Mes emprunts'
+  if (pathname.endsWith('/notifications')) return 'Notifications'
+  if (pathname.endsWith('/penalites')) return 'Pénalités'
+  if (pathname.endsWith('/etablissements')) return 'Établissements'
+  return 'Accueil'
+}
 function homeByRolePath(role) {
   return { ETUDIANT: '/app/etudiant', ADMIN_ETABLISSEMENT: '/app/etablissement', ADMIN_PLATEFORME: '/app/plateforme' }[role]
 }
