@@ -38,6 +38,16 @@ Le lot 1 a commencé par deux tranches :
 
 La lecture utilise `GET /api/emprunts/{id}/lire` et un téléchargement PDF protégé qui revérifie le tenant, le propriétaire et le statut actif de l’emprunt. L’admin d’établissement peut téléverser/remplacer le PDF associé à un ouvrage de son tenant ; seuls les PDF valides jusqu’à 20 Mo sont acceptés. Les fichiers sont stockés sous `OUVRAGES_STORAGE_DIR` et ne sont jamais exposés par une URL publique.
 
+Le lot 3 ajoute à l’espace administrateur établissement :
+
+- La création, la modification, l’archivage, la réactivation et la suppression des ouvrages.
+- La gestion des mémoires et de leurs PDF (disponibilité, téléchargement et suppression), sans URL publique pour les fichiers.
+- La création et l’import Excel des étudiants, ainsi que l’activation et la désactivation de leurs comptes.
+- La gestion des filières, niveaux et catégories de l’établissement.
+- Une session d’accès d’un compte désactivé est refusée dès sa prochaine requête, et le renouvellement est également bloqué.
+
+Les écrans d’administration consomment les endpoints protégés de l’API. Les listes, mutations et fichiers restent limités au tenant courant par le serveur ; les rôles et données d’un autre établissement ne sont ni affichés ni reconstruits côté client.
+
 ## Principes d’expérience
 
 - Afficher à chaque personne uniquement les écrans et actions autorisés par son rôle.
@@ -57,6 +67,9 @@ La lecture utilise `GET /api/emprunts/{id}/lire` et un téléchargement PDF prot
 - L’étudiant peut rechercher les ouvrages et filtrer par filière, niveau et catégorie selon les paramètres supportés par l’API.
 - L’étudiant peut créer un emprunt, le retrouver dans sa liste et ouvrir la lecture si le backend fournit une URL de document.
 - L’admin d’établissement peut téléverser un PDF uniquement pour un ouvrage de son tenant.
+- L’admin d’établissement peut gérer les ouvrages, mémoires, fichiers associés, étudiants et référentiels de son tenant.
+- L’admin d’établissement peut activer et désactiver les comptes étudiants via l’API.
+- Un compte désactivé ne peut plus utiliser un jeton d’accès existant ni renouveler sa session.
 - Un PDF n’est servi qu’à l’étudiant propriétaire d’un emprunt actif du tenant courant.
 - Les vues restent compréhensibles pendant le chargement et en cas d’erreur.
 - Les autres membres peuvent réutiliser les conventions et composants communs pour construire leurs lots.

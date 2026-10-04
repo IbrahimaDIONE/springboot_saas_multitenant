@@ -91,6 +91,20 @@ public class EtudiantServiceImpl implements EtudiantService {
     }
 
     @Override
+    public EtudiantResponse deactivate(UUID id) {
+        Etudiant etudiant =
+                etudiants
+                        .findByIdAndUtilisateur_TenantId(id, tenant.currentTenant())
+                        .orElseThrow(() -> new ResourceNotFoundException("Étudiant introuvable"));
+        TenantUser user = etudiant.getUtilisateur();
+        if (!ROLE.equals(user.getRole())) {
+            throw new ResourceNotFoundException("Étudiant introuvable");
+        }
+        user.setEnabled(false);
+        return toResponse(etudiant);
+    }
+
+    @Override
     public ImportEtudiantsResponse importExcel(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Le fichier Excel est obligatoire");

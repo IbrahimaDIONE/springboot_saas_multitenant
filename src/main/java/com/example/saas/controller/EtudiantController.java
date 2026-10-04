@@ -45,4 +45,9 @@ public class EtudiantController {
     public EtudiantResponse activate(@PathVariable UUID id) {
         return service.activate(id);
     }
+
+    @DeleteMapping("/{id}/activation")
+    public EtudiantResponse deactivate(@PathVariable UUID id) {
+        return service.deactivate(id);
+    }
 }

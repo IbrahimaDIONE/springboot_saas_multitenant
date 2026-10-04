@@ -93,4 +93,19 @@ class EtudiantServiceImplTest {
         assertThat(student.isEnabled()).isTrue();
         verify(etudiants).findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b");
     }
+
+    @Test
+    void shouldDeactivateOnlyStudentFromAuthenticatedTenant() {
+        TenantUser student =
+                TenantUser.newEtudiant(
+                        "tenant-b", "student-b", "{bcrypt}hash", "Diop", "Awa", "awa@example.com");
+        student.setEnabled(true);
+        Etudiant etudiant = new Etudiant(student);
+        when(etudiants.findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b"))
+                .thenReturn(Optional.of(etudiant));
+
+        assertThat(service.deactivate(etudiant.getId()).enabled()).isFalse();
+        assertThat(student.isEnabled()).isFalse();
+        verify(etudiants).findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b");
+    }
 }
