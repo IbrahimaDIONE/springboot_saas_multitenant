@@ -119,7 +119,7 @@ export default function ReferenceManagementPage() {
             onChange={(event) => editing?.key === type.key
               ? setEditing({ ...editing, value: event.target.value })
               : setValues((current) => ({ ...current, [type.key]: event.target.value }))}
-            placeholder={`Nom de la ${type.label.toLocaleLowerCase().replace(/s$/, '')}`}
+            placeholder={`Nom : ${type.singular.toLocaleLowerCase()}`}
             maxLength={100}
             required
           />
