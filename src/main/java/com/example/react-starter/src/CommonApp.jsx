@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Bell, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, CircleHelp, ClipboardList, LogOut, ShieldAlert, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, BookOpen, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, CircleHelp, ClipboardList, FileText, LogOut, ShieldAlert, Tags, UserRound, Users } from 'lucide-react'
 import { useAuth } from './auth/useAuth.js'
 import BookPdfManagementPage from './features/admin/BookPdfManagementPage.jsx'
+import BookManagementPage from './features/admin/BookManagementPage.jsx'
+import MemoireManagementPage from './features/admin/MemoireManagementPage.jsx'
+import ReferenceManagementPage from './features/admin/ReferenceManagementPage.jsx'
+import StudentManagementPage from './features/admin/StudentManagementPage.jsx'
 import BookCatalogPage from './features/catalog/BookCatalogPage.jsx'
 import BookDetailPage from './features/catalog/BookDetailPage.jsx'
 import MyLoansPage from './features/loans/MyLoansPage.jsx'
@@ -35,6 +39,10 @@ function AppRoutes() {
     <Route path="/app/etudiant/emprunts" element={<RoleRoute role="ETUDIANT"><MyLoansPage /></RoleRoute>} />
     <Route path="/app/etudiant/emprunts/:empruntId/lire" element={<RoleRoute role="ETUDIANT"><OnlineReadingPage /></RoleRoute>} />
     <Route path="/app/etablissement/documents" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookPdfManagementPage /></RoleRoute>} />
+    <Route path="/app/etablissement/ouvrages" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookManagementPage /></RoleRoute>} />
+    <Route path="/app/etablissement/memoires" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><MemoireManagementPage /></RoleRoute>} />
+    <Route path="/app/etablissement/etudiants" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><StudentManagementPage /></RoleRoute>} />
+    <Route path="/app/etablissement/referentiels" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><ReferenceManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/dashboard" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Tableau de bord" /></RoleRoute>} />
     <Route path="/app/etablissement/emprunts" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Gestion des emprunts" /></RoleRoute>} />
     <Route path="/app/etablissement/notifications" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Notifications" /></RoleRoute>} />
@@ -129,6 +137,10 @@ function AppLayout({ children }) {
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/catalogue" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Catalogue</NavLink>}
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Mes emprunts</NavLink>}
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/profil" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><UserRound size={18} />Mon profil</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/ouvrages" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpen size={18} />Ouvrages</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/memoires" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><FileText size={18} />Mémoires</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/etudiants" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Users size={18} />Étudiants</NavLink>}
+        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/referentiels" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Tags size={18} />Référentiels</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/documents" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Documents ouvrages</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/dashboard" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ChartNoAxesColumnIncreasing size={18} />Tableau de bord</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ClipboardList size={18} />Emprunts</NavLink>}
@@ -163,6 +175,11 @@ function Lot4Placeholder({ title }) {
 
 function getBreadcrumbLabel(pathname) {
   if (pathname.endsWith('/dashboard')) return 'Tableau de bord'
+  if (pathname.endsWith('/ouvrages')) return 'Gestion des ouvrages'
+  if (pathname.endsWith('/memoires')) return 'Gestion des mémoires'
+  if (pathname.endsWith('/etudiants')) return 'Gestion des étudiants'
+  if (pathname.endsWith('/referentiels')) return 'Filières, niveaux et catégories'
+  if (pathname.endsWith('/documents')) return 'Documents ouvrages'
   if (pathname === '/app/etablissement/emprunts') return 'Gestion des emprunts'
   if (pathname.startsWith('/app/etudiant/emprunts')) return pathname.endsWith('/lire') ? 'Lecture en ligne' : 'Mes emprunts'
   if (pathname.endsWith('/notifications')) return 'Notifications'
