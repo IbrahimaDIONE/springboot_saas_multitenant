@@ -34,12 +34,17 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 7. **Mes emprunts** : statuts, dates d'échéance et accès à la lecture des emprunts actifs.
 8. **Lecture en ligne** : document intégré quand l'API renvoie une URL, état indisponible sinon.
 9. **Documents ouvrages** : téléversement et remplacement réservé à l'administrateur établissement.
+10. **Gestion des ouvrages** : formulaire et liste d’administration avec états actifs et archivés.
+11. **Gestion des mémoires** : métadonnées, archivage et gestion des fichiers PDF associés.
+12. **Gestion des étudiants** : création de compte, import Excel avec retour par ligne et état d’activation explicite.
+13. **Référentiels** : gestion des filières, niveaux et catégories de l’établissement.
 
 ## Comportement et accessibilité
 
 - Actions accessibles au clavier, avec un état de focus visible.
 - Contrôles nommés ; icônes décoratives masquées aux lecteurs d'écran.
 - Retours d'action et erreurs annoncés clairement.
+- Les écrans d’administration prévoient chargement, erreurs, listes vides et retours d’action ; les mutations sont réservées à l’admin établissement.
 - Respecter `prefers-reduced-motion` et rester utilisable sur mobile.
 
 ## Limite de cette référence

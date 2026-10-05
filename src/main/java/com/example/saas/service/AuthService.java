@@ -57,6 +57,9 @@ public class AuthService {
                                 () ->
                                         new InvalidTokenException(
                                                 "Refresh token invalide ou expiré"));
+        if (!old.getUser().isEnabled()) {
+            throw new InvalidTokenException("Compte désactivé");
+        }
         if (!etablissements.findByCode(old.getUser().getTenantId())
                 .map(etablissement -> "ACTIF".equals(etablissement.getStatut()))
                 .orElse(false)) {
