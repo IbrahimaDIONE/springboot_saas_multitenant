@@ -109,7 +109,8 @@ public class NotificationServiceImpl implements NotificationService {
         @Override
         public void notifierNouvelleRessource(String tenantId, String titre) {
                 for (Etudiant etudiant : etudiantRepository
-                                .findAllByUtilisateur_TenantIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(tenantId)) {
+                                .findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+                                                tenantId, "ETUDIANT")) {
                         notificationRepository.save(new Notification(tenantId, etudiant,
                                         "Nouvelle ressource disponible : " + titre,
                                         Notification.Type.NOUVELLE_RESSOURCE));
