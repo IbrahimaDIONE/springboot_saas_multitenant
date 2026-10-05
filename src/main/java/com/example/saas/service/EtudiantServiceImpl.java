@@ -51,8 +51,8 @@ public class EtudiantServiceImpl implements EtudiantService {
     @Transactional(readOnly = true)
     public List<EtudiantResponse> findAll() {
         return etudiants
-            .findAllByUtilisateur_TenantIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
-                tenant.currentTenant())
+            .findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+                tenant.currentTenant(), ROLE)
                 .stream()
             .map(this::toResponse)
                 .toList();
