@@ -14,6 +14,9 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, UUID> {
     List<Etudiant> findAllByUtilisateur_TenantIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
             String tenantId);
 
+        List<Etudiant> findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+            String tenantId, String role);
+
     Optional<Etudiant> findByIdAndUtilisateur_TenantId(UUID id, String tenantId);
 
     Optional<Etudiant> findByUtilisateur_Id(UUID utilisateurId);
@@ -28,4 +31,6 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, UUID> {
     Optional<Etudiant> findByUtilisateurUsername(@Param("username") String username);
 
     long countByUtilisateur_TenantId(String tenantId);
+
+    long countByUtilisateur_TenantIdAndUtilisateur_Role(String tenantId, String role);
 }
