@@ -7,6 +7,12 @@ import BookManagementPage from './features/admin/BookManagementPage.jsx'
 import MemoireManagementPage from './features/admin/MemoireManagementPage.jsx'
 import ReferenceManagementPage from './features/admin/ReferenceManagementPage.jsx'
 import StudentManagementPage from './features/admin/StudentManagementPage.jsx'
+import DashboardPage from './features/admin/DashboardPage.jsx'
+import EmpruntsAdminPage from './features/admin/EmpruntsAdminPage.jsx'
+import NotificationsAdminPage from './features/admin/NotificationsAdminPage.jsx'
+import ReglesPenaliteAdminPage from './features/admin/ReglesPenaliteAdminPage.jsx'
+import EtablissementsPage from './features/admin/EtablissementsPage.jsx'
+import RolesAdminPage from './features/admin/RolesAdminPage.jsx'
 import BookCatalogPage from './features/catalog/BookCatalogPage.jsx'
 import BookDetailPage from './features/catalog/BookDetailPage.jsx'
 import MyLoansPage from './features/loans/MyLoansPage.jsx'
@@ -43,12 +49,13 @@ function AppRoutes() {
     <Route path="/app/etablissement/memoires" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><MemoireManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/etudiants" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><StudentManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/referentiels" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><ReferenceManagementPage /></RoleRoute>} />
-    <Route path="/app/etablissement/dashboard" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Tableau de bord" /></RoleRoute>} />
-    <Route path="/app/etablissement/emprunts" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Gestion des emprunts" /></RoleRoute>} />
-    <Route path="/app/etablissement/notifications" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Notifications" /></RoleRoute>} />
-    <Route path="/app/etablissement/penalites" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><Lot4Placeholder title="Pénalités" /></RoleRoute>} />
-    <Route path="/app/plateforme/etablissements" element={<RoleRoute role="ADMIN_PLATEFORME"><Lot4Placeholder title="Établissements" /></RoleRoute>} />
+    <Route path="/app/etablissement/dashboard" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><DashboardPage /></RoleRoute>} />
+    <Route path="/app/etablissement/emprunts" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><EmpruntsAdminPage /></RoleRoute>} />
+    <Route path="/app/etablissement/notifications" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><NotificationsAdminPage /></RoleRoute>} />
+    <Route path="/app/etablissement/penalites" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><ReglesPenaliteAdminPage /></RoleRoute>} />
+    <Route path="/app/plateforme/etablissements" element={<RoleRoute role="ADMIN_PLATEFORME"><EtablissementsPage /></RoleRoute>} />
     <Route path="/app/etablissement" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><RoleHome /></RoleRoute>} />
+    <Route path="/app/plateforme/roles" element={<RoleRoute role="ADMIN_PLATEFORME"><RolesAdminPage /></RoleRoute>} />
     <Route path="/app/plateforme" element={<RoleRoute role="ADMIN_PLATEFORME"><RoleHome /></RoleRoute>} />
     <Route path="*" element={<Navigate to="/" replace />} />
   </Routes>
@@ -147,6 +154,7 @@ function AppLayout({ children }) {
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/notifications" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Bell size={18} />Notifications</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/penalites" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ShieldAlert size={18} />Pénalités</NavLink>}
         {user.role === 'ADMIN_PLATEFORME' && <NavLink to="/app/plateforme/etablissements" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Building2 size={18} />Établissements</NavLink>}
+        {user.role === 'ADMIN_PLATEFORME' && <NavLink to="/app/plateforme/roles" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Users size={18} />Rôles</NavLink>}
       </nav>
       <div className="sidebar-bottom">
         <a className="nav-item help-link" href="mailto:bibliotheque@universite.edu"><CircleHelp size={18} />Aide</a>
@@ -185,6 +193,7 @@ function getBreadcrumbLabel(pathname) {
   if (pathname.endsWith('/notifications')) return 'Notifications'
   if (pathname.endsWith('/penalites')) return 'Pénalités'
   if (pathname.endsWith('/etablissements')) return 'Établissements'
+  if (pathname.endsWith('/roles')) return 'Rôles'
   return 'Accueil'
 }
 function homeByRolePath(role) {
