@@ -13,7 +13,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         const controller = new AbortController()
-        api.get('/api/dashboard', { signal: controller.signal })
+        api.get('/api/dashboard/etablissement', { signal: controller.signal })
             .then(({ data: d }) => setResult({ key: requestKey, data: d }))
             .catch((err) => {
                 if (err.code !== 'ERR_CANCELED')
@@ -22,12 +22,12 @@ export default function DashboardPage() {
         return () => controller.abort()
     }, [requestKey])
 
-    return <section className="content dashboard-page">
-        <div className="page-heading">
+    return <section className="content admin-page dashboard-page">
+        <header className="admin-heading">
             <span className="eyebrow">ADMINISTRATION DE L'ETABLISSEMENT</span>
             <h1>Tableau de bord</h1>
             <p>Vue d'ensemble de l'activite de votre etablissement.</p>
-        </div>
+        </header>
 
         {loading && (
             <div className="catalog-state" role="status">
@@ -67,7 +67,7 @@ export default function DashboardPage() {
                 <StatCard
                     icon={<AlertTriangle size={22} />}
                     label="Emprunts en retard"
-                    value={data.empruntsEnRetard ?? 0}
+                    value={data.empruntsRetardes ?? 0}
                     color="alerte"
                 />
             </div>

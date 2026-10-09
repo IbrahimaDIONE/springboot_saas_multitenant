@@ -37,11 +37,13 @@ public class MemoireServiceImpl implements MemoireService {
     private final NiveauRepository niveaux;
     private final FileStorageService storage;
     private final TenantProvider tenantProvider;
+    private final NotificationService notifications;
 
     public MemoireServiceImpl(MemoireRepository repository, MemoireMapper mapper,
                               FichierRepository fichierRepository, FichierMapper fichierMapper,
                               FiliereRepository filieres, NiveauRepository niveaux,
-                              FileStorageService storage, TenantProvider tenantProvider) {
+                              FileStorageService storage, TenantProvider tenantProvider,
+                              NotificationService notifications) {
         this.repository = repository;
         this.mapper = mapper;
         this.fichierRepository = fichierRepository;
@@ -50,6 +52,7 @@ public class MemoireServiceImpl implements MemoireService {
         this.niveaux = niveaux;
         this.storage = storage;
         this.tenantProvider = tenantProvider;
+        this.notifications = notifications;
     }
     @Transactional(readOnly = true)
     public List<MemoireResponse> findAll() {
@@ -72,9 +75,13 @@ public class MemoireServiceImpl implements MemoireService {
         return mapper.toResponse(memoire);
     }
     public MemoireResponse create(MemoireRequest r) {
-        Memoire memoire = new Memoire(tenant(), r.titre(), r.auteur(), r.encadreur(), r.resume(), r.annee(),
+        String tenantId = tenant();
+        Memoire memoire = new Memoire(tenantId, r.titre(), r.auteur(), r.encadreur(), r.resume(), r.annee(),
                 filiere(r.filiereId()), niveau(r.niveauId()));
-        return mapper.toResponse(repository.save(memoire));
+        Memoire saved = repository.save(memoire);
+        notifications.notifierNouvelleRessource(
+            tenantId, saved.getTitre(), saved.getFiliere().getId(), saved.getNiveau().getId());
+        return mapper.toResponse(saved);
     }
     public MemoireResponse update(UUID id, MemoireRequest r) {
         Memoire memoire = findEntity(id);
