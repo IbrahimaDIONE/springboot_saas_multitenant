@@ -15,9 +15,10 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 
 ## Règles d'interface
 
-- Navigation latérale sur grand écran et navigation compacte sur mobile.
+- Navigation latérale sur grand écran : le menu défile indépendamment si la hauteur manque, les actions de session restent fixes en bas. Navigation compacte sur mobile.
 - Grilles et tableaux alignés, marges régulières et angles discrets (4 à 8 px).
 - Actions principales nommées ; icônes Lucide réservées aux commandes compactes et accompagnées d'un libellé accessible.
+- La déconnexion utilise le corail pour se distinguer des liens de navigation. Le tenant apparaît dans l'espace établissement, pas dans l'espace plateforme.
 - Les couvertures servent de repères visuels ; les métadonnées restent lisibles et hiérarchisées.
 - Chaque écran de données prévoit chargement, absence de résultat, erreur et contenu normal.
 - Les couleurs ne portent jamais seules une information : associer un libellé ou une icône.
@@ -26,7 +27,7 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 ## Écrans de référence
 
 1. **Connexion** : formulaire sobre, identité BiblioUniv et retours d'erreur accessibles.
-2. **Accueil protégé** : shell partagé, identité de session et espace d'accueil neutre adapté au rôle.
+2. **Accueils protégés** : shell partagé, identité et accès rapides adaptés au rôle ; indicateurs de l'établissement et de la plateforme chargés depuis l'API.
 3. **Accès refusé** : explication claire et retour vers l'espace autorisé.
 4. **Mon profil** : consultation et modification des informations personnelles par l'étudiant.
 5. **Catalogue ouvrages** : recherche, filtres pris en charge par l'API et cartes lisibles.
@@ -38,6 +39,11 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 11. **Gestion des mémoires** : métadonnées, archivage et gestion des fichiers PDF associés.
 12. **Gestion des étudiants** : création de compte, import Excel avec retour par ligne et état d’activation explicite.
 13. **Référentiels** : gestion des filières, niveaux et catégories de l’établissement.
+14. **Tableau de bord établissement** : indicateurs tenant-scoped sur les étudiants, ressources et emprunts.
+15. **Emprunts établissement** : filtre par statut, suivi des échéances et validation des retours.
+16. **Notifications établissement** : historique automatique consultable et filtrable par type.
+17. **Règles et pénalités** : configuration du délai de tolérance et de la conséquence, consultation des pénalités appliquées.
+18. **Plateforme** : gestion des établissements et rôles, consultation des statistiques globales.
 
 ## Comportement et accessibilité
 
@@ -45,8 +51,12 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 - Contrôles nommés ; icônes décoratives masquées aux lecteurs d'écran.
 - Retours d'action et erreurs annoncés clairement.
 - Les écrans d’administration prévoient chargement, erreurs, listes vides et retours d’action ; les mutations sont réservées à l’admin établissement.
+- Les tables d'administration s'adaptent en fiches sur les écrans étroits ; sur desktop, seul le menu latéral défile lorsque nécessaire.
+- L'administration des notifications est en lecture seule : les événements automatiques sont consultables par type.
 - Respecter `prefers-reduced-motion` et rester utilisable sur mobile.
 
 ## Limite de cette référence
 
 L’administration des documents est réservée à l’admin établissement. Le téléchargement PDF est servi après vérification du tenant, du propriétaire et de l’emprunt actif ; un ouvrage sans fichier présente un état indisponible. Le serveur contrôle le type PDF et limite les fichiers à 20 Mo.
+
+Les ouvrages et mémoires déclenchent une notification pour les étudiants actifs du même tenant, de la même filière et du même niveau. Les rappels, avertissements et pénalités suivent les échéances et les règles de l'établissement. Les notifications sont internes à l'application ; aucun envoi e-mail ou SMS n'est défini.

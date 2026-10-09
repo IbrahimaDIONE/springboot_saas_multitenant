@@ -61,7 +61,8 @@ public class OuvrageServiceImpl implements OuvrageService {
             filiere(request.filiereId()), niveau(request.niveauId()));
         ouvrage.associerCategorie(categorie(request.categorieId()));
         Ouvrage saved = repository.save(ouvrage);
-        notifications.notifierNouvelleRessource(tenant(), saved.getTitre());
+        notifications.notifierNouvelleRessource(
+            tenant(), saved.getTitre(), saved.getFiliere().getId(), saved.getNiveau().getId());
         return mapper.toResponse(saved);
     }
     public OuvrageResponse update(UUID id, OuvrageRequest request) {

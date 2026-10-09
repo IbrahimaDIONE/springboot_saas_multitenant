@@ -17,6 +17,9 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, UUID> {
         List<Etudiant> findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
             String tenantId, String role);
 
+    List<Etudiant> findAllByUtilisateur_TenantIdAndUtilisateur_RoleAndUtilisateur_EnabledTrueAndFiliereIdAndNiveauIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+            String tenantId, String role, UUID filiereId, UUID niveauId);
+
     Optional<Etudiant> findByIdAndUtilisateur_TenantId(UUID id, String tenantId);
 
     Optional<Etudiant> findByUtilisateur_Id(UUID utilisateurId);

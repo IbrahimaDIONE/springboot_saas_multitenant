@@ -22,10 +22,13 @@ export default function ReglesPenaliteAdminPage() {
     const [formSuccess, setFormSuccess] = useState('')
 
     // Pénalités appliquées
-    const [penalites, setPenalites] = useState([])
-    const [penalitesLoading, setPenalitesLoading] = useState(true)
-    const [penalitesError, setPenalitesError] = useState('')
+    const [penalitesResult, setPenalitesResult] = useState({ key: '', penalites: [] })
+    const [penalitesFailure, setPenalitesFailure] = useState({ key: '', message: '' })
     const [penalitesVersion, setPenalitesVersion] = useState(0)
+    const penalitesRequestKey = String(penalitesVersion)
+    const penalites = penalitesResult.key === penalitesRequestKey ? penalitesResult.penalites : []
+    const penalitesLoading = penalitesResult.key !== penalitesRequestKey && penalitesFailure.key !== penalitesRequestKey
+    const penalitesError = penalitesFailure.key === penalitesRequestKey ? penalitesFailure.message : ''
 
     useEffect(() => {
         const controller = new AbortController()
@@ -40,17 +43,17 @@ export default function ReglesPenaliteAdminPage() {
 
     useEffect(() => {
         const controller = new AbortController()
-        setPenalitesLoading(true)
-        setPenalitesError('')
         api.get('/api/penalites', { signal: controller.signal })
-            .then(({ data }) => setPenalites(data))
+            .then(({ data }) => setPenalitesResult({ key: penalitesRequestKey, penalites: data }))
             .catch((err) => {
                 if (err.code !== 'ERR_CANCELED')
-                    setPenalitesError(err.response?.data?.message || 'Impossible de charger les pénalités appliquées.')
+                    setPenalitesFailure({
+                        key: penalitesRequestKey,
+                        message: err.response?.data?.message || 'Impossible de charger les pénalités appliquées.',
+                    })
             })
-            .finally(() => setPenalitesLoading(false))
         return () => controller.abort()
-    }, [penalitesVersion])
+    }, [penalitesRequestKey])
 
     function startEdit(regle) {
         setEditingId(regle.id)
@@ -120,12 +123,12 @@ export default function ReglesPenaliteAdminPage() {
         }
     }
 
-    return <section className="content regles-penalite-admin-page">
-        <div className="page-heading">
+    return <section className="content admin-page regles-penalite-admin-page">
+        <header className="admin-heading">
             <span className="eyebrow">ADMINISTRATION DE L'ETABLISSEMENT</span>
             <h1>Règles de pénalité</h1>
             <p>Définissez les règles appliquées en cas de retard, et consultez les pénalités déjà appliquées.</p>
-        </div>
+        </header>
 
         <div className="notification-form-card">
             <h2>{editingId ? 'Modifier la règle' : 'Créer une règle'}</h2>
@@ -222,10 +225,10 @@ export default function ReglesPenaliteAdminPage() {
                         <tbody>
                         {regles.map(regle => (
                             <tr key={regle.id}>
-                                <td>{regle.joursTolérance}</td>
-                                <td><span className="badge">{regle.typeConsequence}</span></td>
-                                <td>{regle.description || '—'}</td>
-                                <td className="table-actions">
+                                <td data-label="Jours de tolérance">{regle.joursTolérance}</td>
+                                <td data-label="Conséquence"><span className="badge">{regle.typeConsequence}</span></td>
+                                <td data-label="Description">{regle.description || '—'}</td>
+                                <td className="table-actions" data-label="Actions">
                                     <button className="icon-button" onClick={() => startEdit(regle)} aria-label="Modifier">
                                         <Pencil size={15} />
                                     </button>
@@ -282,11 +285,11 @@ export default function ReglesPenaliteAdminPage() {
                         <tbody>
                         {penalites.map(p => (
                             <tr key={p.id}>
-                                <td>{p.etudiantId}</td>
-                                <td>{p.empruntId}</td>
-                                <td>{p.motif}</td>
-                                <td><span className="badge">{p.consequence}</span></td>
-                                <td>{new Date(p.dateApplication).toLocaleDateString('fr-FR')}</td>
+                                <td data-label="Étudiant">{p.etudiantId}</td>
+                                <td data-label="Emprunt">{p.empruntId}</td>
+                                <td data-label="Motif">{p.motif}</td>
+                                <td data-label="Conséquence"><span className="badge">{p.consequence}</span></td>
+                                <td data-label="Date">{new Date(p.dateApplication).toLocaleDateString('fr-FR')}</td>
                             </tr>
                         ))}
                         </tbody>

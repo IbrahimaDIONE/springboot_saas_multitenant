@@ -1,3 +1,5 @@
+.sidebar-bottom .logout-link{color:var(--coral)}
+.sidebar-bottom .logout-link:hover{background:#fff0eb;color:#a54e3e}
 .app-shell{min-height:100vh;display:grid;grid-template-columns:246px minmax(0,1fr)}
 .sidebar{position:sticky;top:0;height:100vh;padding:28px 17px 18px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;box-sizing:border-box}
 .brand{display:flex;align-items:center;gap:10px;color:var(--ink);font-family:var(--display);font-size:22px;font-weight:650}.brand>span:last-child>span{color:var(--coral)}.brand-icon{width:34px;height:34px;border-radius:8px;background:var(--ink);color:#fff;display:grid;place-items:center}

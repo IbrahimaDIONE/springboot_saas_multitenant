@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Bell, BookOpen, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, CircleHelp, ClipboardList, FileText, LogOut, ShieldAlert, Tags, UserRound, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, BookOpen, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, ClipboardList, FileText, LogOut, ShieldAlert, Tags, UserRound, Users } from 'lucide-react'
 import { useAuth } from './auth/useAuth.js'
 import BookPdfManagementPage from './features/admin/BookPdfManagementPage.jsx'
 import BookManagementPage from './features/admin/BookManagementPage.jsx'
@@ -18,12 +18,62 @@ import BookDetailPage from './features/catalog/BookDetailPage.jsx'
 import MyLoansPage from './features/loans/MyLoansPage.jsx'
 import OnlineReadingPage from './features/loans/OnlineReadingPage.jsx'
 import ProfilePage from './features/profile/ProfilePage.jsx'
+import { api } from './api/client.js'
 import './App.css'
+import './features/admin/admin.css'
 
 const roleLabels = {
   ETUDIANT: 'Étudiant',
   ADMIN_ETABLISSEMENT: 'Administrateur établissement',
   ADMIN_PLATEFORME: 'Administrateur plateforme',
+}
+
+const homeContent = {
+  ETUDIANT: {
+    eyebrow: 'ESPACE ÉTUDIANT',
+    description: 'Retrouvez vos ressources et vos emprunts depuis votre espace personnel.',
+    actions: [
+      { label: 'Explorer le catalogue', detail: 'Rechercher un ouvrage dans la bibliothèque.', path: '/app/etudiant/catalogue', icon: BookOpen },
+      { label: 'Mes emprunts', detail: 'Consulter les échéances et reprendre une lecture.', path: '/app/etudiant/emprunts', icon: ClipboardList },
+      { label: 'Mon profil', detail: 'Vérifier vos informations de compte.', path: '/app/etudiant/profil', icon: UserRound },
+    ],
+  },
+  ADMIN_ETABLISSEMENT: {
+    eyebrow: 'ADMINISTRATION DE L’ÉTABLISSEMENT',
+    description: 'Suivez l’activité et accédez aux outils de gestion de votre établissement.',
+    statsEndpoint: '/api/dashboard/etablissement',
+    stats: [
+      { label: 'Étudiants inscrits', key: 'nombreEtudiants', color: 'ink', icon: Users },
+      { label: 'Ressources disponibles', key: 'nombreRessources', color: 'gold', icon: BookOpen },
+      { label: 'Emprunts en cours', key: 'empruntsEnCours', color: 'coral', icon: ClipboardList },
+      { label: 'Emprunts en retard', key: 'empruntsRetardes', color: 'alert', icon: ShieldAlert },
+    ],
+    actions: [
+      { label: 'Tableau de bord', detail: 'Consulter les indicateurs de la bibliothèque.', path: '/app/etablissement/dashboard', icon: ChartNoAxesColumnIncreasing },
+      { label: 'Ouvrages', detail: 'Gérer le catalogue de votre établissement.', path: '/app/etablissement/ouvrages', icon: BookOpen },
+      { label: 'Mémoires', detail: 'Gérer les mémoires et leurs fichiers.', path: '/app/etablissement/memoires', icon: FileText },
+      { label: 'Étudiants', detail: 'Gérer les comptes et les inscriptions.', path: '/app/etablissement/etudiants', icon: Users },
+      { label: 'Référentiels', detail: 'Gérer les filières, niveaux et catégories.', path: '/app/etablissement/referentiels', icon: Tags },
+      { label: 'Emprunts', detail: 'Suivre les emprunts et valider les retours.', path: '/app/etablissement/emprunts', icon: ClipboardList },
+      { label: 'Notifications', detail: 'Consulter et envoyer des notifications.', path: '/app/etablissement/notifications', icon: Bell },
+      { label: 'Pénalités', detail: 'Gérer les règles et les pénalités appliquées.', path: '/app/etablissement/penalites', icon: ShieldAlert },
+    ],
+  },
+  ADMIN_PLATEFORME: {
+    eyebrow: 'ADMINISTRATION DE LA PLATEFORME',
+    description: 'Pilotez les établissements hébergés et les rôles de la plateforme.',
+    statsEndpoint: '/api/etablissements/statistiques',
+    stats: [
+      { label: 'Établissements', key: 'etablissements', color: 'ink', icon: Building2 },
+      { label: 'Établissements actifs', key: 'etablissementsActifs', color: 'gold', icon: ChartNoAxesColumnIncreasing },
+      { label: 'Utilisateurs', key: 'utilisateurs', color: 'coral', icon: Users },
+      { label: 'Ressources', key: 'ressources', color: 'blue', icon: BookOpen },
+    ],
+    actions: [
+      { label: 'Établissements', detail: 'Créer, configurer et suivre les établissements.', path: '/app/plateforme/etablissements', icon: Building2 },
+      { label: 'Rôles', detail: 'Gérer les rôles disponibles sur la plateforme.', path: '/app/plateforme/roles', icon: Users },
+    ],
+  },
 }
 
 function CommonApp() {
@@ -71,11 +121,62 @@ function RoleRoute({ role, children }) {
 
 function RoleHome() {
   const { user } = useAuth()
+  const [statsResult, setStatsResult] = useState({ role: '', data: null })
+  const [statsFailure, setStatsFailure] = useState({ role: '', message: '' })
+  const content = homeContent[user.role]
+  const statsData = statsResult.role === user.role ? statsResult.data : null
+  const statsError = statsFailure.role === user.role ? statsFailure.message : ''
+  const statsLoading = Boolean(content.statsEndpoint) && !statsData && !statsError
+
+  useEffect(() => {
+    if (!content.statsEndpoint) return undefined
+    const controller = new AbortController()
+    api.get(content.statsEndpoint, { signal: controller.signal })
+      .then(({ data }) => setStatsResult({ role: user.role, data }))
+      .catch((error) => {
+        if (error.code !== 'ERR_CANCELED') {
+          setStatsFailure({
+            role: user.role,
+            message: error.response?.data?.message || 'Impossible de charger les indicateurs.',
+          })
+        }
+      })
+    return () => controller.abort()
+  }, [content.statsEndpoint, user.role])
+
   return <section className="content common-home">
-    <span className="eyebrow">VOTRE ESPACE SÉCURISÉ</span>
-    <h1>Bienvenue, {user.username}.</h1>
-    <p>Vous êtes connecté en tant que <strong>{roleLabels[user.role]}</strong>.</p>
-    <div className="common-welcome"><span className="welcome-icon"><BookOpenCheck size={22} /></span><div><h2>Votre espace BiblioUniv</h2><p>La base commune est prête. Les fonctionnalités de votre espace seront ajoutées progressivement.</p></div></div>
+    <header className="admin-heading home-heading">
+      <span className="eyebrow">{content.eyebrow}</span>
+      <h1>Bienvenue, {user.username}.</h1>
+      <p>{content.description}</p>
+    </header>
+
+    {statsLoading && <div className="admin-state home-stats-state" role="status">Chargement des indicateurs…</div>}
+    {statsError && <p className="admin-error home-stats-error" role="alert">{statsError}</p>}
+    {statsData && <div className="dashboard-grid home-stat-grid">
+      {content.stats.map(({ label, key, color, icon: Icon }) => (
+        <div className={`stat-card stat-card--${color}`} key={key}>
+          <span className="stat-icon"><Icon size={19} /></span>
+          <span className="stat-body"><strong>{statsData[key] ?? 0}</strong><small>{label}</small></span>
+        </div>
+      ))}
+    </div>}
+
+    <section className="home-actions-section" aria-labelledby="home-actions-title">
+      <div className="home-section-heading">
+        <h2 id="home-actions-title">Accès rapides</h2>
+        <span>{content.actions.length} espaces disponibles</span>
+      </div>
+      <div className="home-action-grid">
+        {content.actions.map(({ label, detail, path, icon: Icon }) => (
+          <NavLink className="home-action" key={path} to={path}>
+            <span className="home-action-icon"><Icon size={18} /></span>
+            <span className="home-action-copy"><strong>{label}</strong><small>{detail}</small></span>
+            <ArrowRight className="home-action-arrow" size={16} />
+          </NavLink>
+        ))}
+      </div>
+    </section>
   </section>
 }
 
@@ -116,7 +217,6 @@ function LoginPage() {
         <button className="primary-button login-submit" type="submit" disabled={submitting}>{submitting ? 'Connexion…' : 'Se connecter'}<ArrowRight size={17} /></button>
         {error && <p className="form-notice" role="alert">{error}</p>}
       </form>
-      <p className="login-help">Besoin d’aide ? <a href="mailto:bibliotheque@universite.edu">Contacter la bibliothèque</a></p>
       <span className="login-footer">Accès réservé aux membres de l’établissement</span>
     </section>
   </main>
@@ -157,7 +257,6 @@ function AppLayout({ children }) {
         {user.role === 'ADMIN_PLATEFORME' && <NavLink to="/app/plateforme/roles" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Users size={18} />Rôles</NavLink>}
       </nav>
       <div className="sidebar-bottom">
-        <a className="nav-item help-link" href="mailto:bibliotheque@universite.edu"><CircleHelp size={18} />Aide</a>
         <button className="nav-item logout-link" onClick={handleLogout}><LogOut size={18} />Se déconnecter</button>
         <div className="tenant-card"><span className="tenant-mark"><UserRound size={16} /></span><span><strong>{user.username}</strong><small>{roleLabels[user.role]}</small></span></div>
       </div>
@@ -165,20 +264,11 @@ function AppLayout({ children }) {
     <main className="main-area">
       <header className="topbar">
         <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{getBreadcrumbLabel(location.pathname)}</strong></div>
-        <div className="topbar-actions"><span className="role-pill">{roleLabels[user.role]}</span>{user.tenantId && <span className="tenant-label">{user.tenantId}</span>}</div>
+        <div className="topbar-actions"><span className="role-pill">{roleLabels[user.role]}</span>{user.role !== 'ADMIN_PLATEFORME' && user.tenantId && <span className="tenant-label">{user.tenantId}</span>}</div>
       </header>
       {children}
     </main>
   </div>
-}
-
-function Lot4Placeholder({ title }) {
-  const { user } = useAuth()
-  return <section className="content common-home">
-    <span className="eyebrow">LOT 4 · {roleLabels[user.role].toUpperCase()}</span>
-    <h1>{title}</h1>
-    <p>Le routage est prêt. Cet écran attend le composant du lot 4.</p>
-  </section>
 }
 
 function getBreadcrumbLabel(pathname) {

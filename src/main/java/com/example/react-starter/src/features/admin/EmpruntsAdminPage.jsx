@@ -22,23 +22,23 @@ export default function EmpruntsAdminPage() {
                     setFailure({ key: requestKey, message: err.response?.data?.message || 'Impossible de charger les emprunts.' })
             })
         return () => controller.abort()
-    }, [requestKey])
+    }, [requestKey, statut])
 
     async function handleRetour(id) {
         try {
-            await api.put(`/api/emprunts/${id}/retour`)
+            await api.patch(`/api/emprunts/${id}/retour`)
             setRetryVersion(v => v + 1)
         } catch (err) {
             alert(err.response?.data?.message || 'Impossible de valider le retour.')
         }
     }
 
-    return <section className="content emprunts-admin-page">
-        <div className="page-heading">
+    return <section className="content admin-page emprunts-admin-page">
+        <header className="admin-heading">
             <span className="eyebrow">ADMINISTRATION DE L'ETABLISSEMENT</span>
             <h1>Gestion des emprunts</h1>
             <p>Consultez les emprunts en cours et validez les retours.</p>
-        </div>
+        </header>
 
         <div className="filters-bar">
             <label htmlFor="filtre-statut">Filtrer par statut</label>
@@ -93,16 +93,16 @@ export default function EmpruntsAdminPage() {
                     <tbody>
                     {emprunts.map(emprunt => (
                         <tr key={emprunt.id}>
-                            <td>{emprunt.titreOuvrage}</td>
-                            <td>{emprunt.etudiantId}</td>
-                            <td>{new Date(emprunt.dateEmprunt).toLocaleDateString('fr-FR')}</td>
-                            <td>{new Date(emprunt.dateExpiration).toLocaleDateString('fr-FR')}</td>
-                            <td>
+                            <td data-label="Ouvrage">{emprunt.titreOuvrage}</td>
+                            <td data-label="Étudiant">{emprunt.etudiantId || '—'}</td>
+                            <td data-label="Date emprunt">{new Date(emprunt.dateEmprunt).toLocaleDateString('fr-FR')}</td>
+                            <td data-label="Date expiration">{new Date(emprunt.dateExpiration).toLocaleDateString('fr-FR')}</td>
+                            <td data-label="Statut">
                   <span className={`badge badge--${emprunt.statut.toLowerCase()}`}>
                     {emprunt.statut}
                   </span>
                             </td>
-                            <td>
+                            <td data-label="Action">
                                 {emprunt.statut === 'ACTIF' || emprunt.statut === 'RETARDE' ? (
                                     <button
                                         className="secondary-button"

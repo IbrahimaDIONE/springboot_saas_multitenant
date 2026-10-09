@@ -107,36 +107,21 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
         @Override
-        public void notifierNouvelleRessource(String tenantId, String titre) {
-                for (Etudiant etudiant : etudiantRepository
-                                .findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
-                                                tenantId, "ETUDIANT")) {
-                        notificationRepository.save(new Notification(tenantId, etudiant,
-                                        "Nouvelle ressource disponible : " + titre,
-                                        Notification.Type.NOUVELLE_RESSOURCE));
-                }
+        public void notifierNouvelleRessource(
+                        String tenantId, String titre, UUID filiereId, UUID niveauId) {
+        List<Etudiant> etudiants = etudiantRepository
+                .findAllByUtilisateur_TenantIdAndUtilisateur_RoleAndUtilisateur_EnabledTrueAndFiliereIdAndNiveauIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+                                                tenantId, "ETUDIANT", filiereId, niveauId);
+        for (Etudiant etudiant : etudiants) {
+            notificationRepository.save(new Notification(
+                    tenantId,
+                    etudiant,
+                                        "Nouvelle ressource disponible pour votre filière et niveau : " + titre,
+                    Notification.Type.NOUVELLE_RESSOURCE));
         }
+    }
 
     // ── ADMIN ─────────────────────────────────────
-
-    @Override
-    public NotificationResponse envoyer(NotificationRequest request) {
-        String tenantId = TenantContext.get();
-
-        Etudiant etudiant = etudiantRepository
-                .findByUtilisateur_IdAndUtilisateur_TenantId(request.etudiantId(), tenantId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Étudiant non trouvé"));
-
-        Notification.Type type = Notification.Type.valueOf(
-                request.type().toUpperCase());
-
-        Notification notification = new Notification(
-                tenantId, etudiant, request.message(), type);
-
-        return notificationMapper.toResponse(
-                notificationRepository.save(notification));
-    }
 
     @Override
     @Transactional(readOnly = true)

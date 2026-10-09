@@ -70,31 +70,44 @@ public class PenaliteServiceImpl implements PenaliteService {
                     emprunt.getTenantId(), emprunt.getEtudiant().getId(),
                     Notification.Type.RAPPEL_ECHEANCE, now.minus(1, ChronoUnit.DAYS))) {
             notifications.save(new Notification(emprunt.getTenantId(), emprunt.getEtudiant(),
-                "Votre emprunt arrive à échéance dans moins de 48 heures.",
+                    "L'emprunt de « " + emprunt.getOuvrage().getTitre()
+                        + " » arrive à échéance dans moins de 48 heures.",
                 Notification.Type.RAPPEL_ECHEANCE));
             }
             if (emprunt.getStatut() == Emprunt.Statut.ACTIF
                     && emprunt.getDateExpiration().isBefore(now)) {
                 emprunt.retarder();
-                String tenantId = emprunt.getTenantId();
-                if (!penalites.existsByTenantIdAndEmpruntId(tenantId, emprunt.getId())) {
-                    ReglePenalite regle = regles.findAllByTenantIdOrderByCreatedAtDesc(tenantId)
-                            .stream().findFirst().orElse(null);
-                    String consequence = regle == null
-                            ? ReglePenalite.TypeConsequence.AVERTISSEMENT.name()
-                            : regle.getTypeConsequence().name();
-                    Penalite penalite = penalites.save(new Penalite(
-                            tenantId, emprunt.getEtudiant(), emprunt,
-                            "Retard de restitution de l'ouvrage", consequence));
                     notifications.save(new Notification(
-                            tenantId, emprunt.getEtudiant(),
-                            "Une pénalité a été appliquée à votre emprunt.",
-                            Notification.Type.PENALITE));
-                    if (regle != null && regle.getTypeConsequence()
-                            == ReglePenalite.TypeConsequence.SUSPENSION_TEMPORAIRE) {
+                        emprunt.getTenantId(), emprunt.getEtudiant(),
+                        "L'emprunt de « " + emprunt.getOuvrage().getTitre()
+                            + " » est en retard. Consultez les règles de pénalité de votre établissement.",
+                        Notification.Type.AVERTISSEMENT_RETARD));
+                    }
+
+                    if (emprunt.getStatut() == Emprunt.Statut.RETARDE) {
+                    String tenantId = emprunt.getTenantId();
+                    ReglePenalite regle = regles.findAllByTenantIdOrderByCreatedAtDesc(tenantId)
+                        .stream().findFirst().orElse(null);
+                    if (regle == null
+                        || now.isBefore(emprunt.getDateExpiration()
+                            .plus(regle.getJoursTolérance(), ChronoUnit.DAYS))
+                        || penalites.existsByTenantIdAndEmpruntId(tenantId, emprunt.getId())) {
+                        continue;
+                    }
+
+                    penalites.save(new Penalite(
+                        tenantId, emprunt.getEtudiant(), emprunt,
+                        "Retard de restitution de l'ouvrage",
+                        regle.getTypeConsequence().name()));
+                    notifications.save(new Notification(
+                        tenantId, emprunt.getEtudiant(),
+                        "Une pénalité a été appliquée à l'emprunt de « "
+                            + emprunt.getOuvrage().getTitre() + " ».",
+                        Notification.Type.PENALITE));
+                    if (regle.getTypeConsequence()
+                        == ReglePenalite.TypeConsequence.SUSPENSION_TEMPORAIRE) {
                         emprunt.getEtudiant().getUtilisateur().setEnabled(false);
                     }
-                }
             }
         }
     }
