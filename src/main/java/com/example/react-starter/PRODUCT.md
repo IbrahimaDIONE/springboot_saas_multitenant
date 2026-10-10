@@ -10,7 +10,7 @@ Le frontend consomme le contrat REST du backend. Toute capacité nouvelle est aj
 
 ### Étudiant
 
-Consulte et recherche les ouvrages disponibles, emprunte un ouvrage, lit en ligne les documents auxquels il a accès et suit ses emprunts. Le backend expose la consultation des notifications et pénalités personnelles ; leur écran dédié n'est pas encore intégré à l'espace étudiant.
+Consulte et recherche les ouvrages et mémoires de son établissement, emprunte des ouvrages, lit les documents autorisés, gère ses favoris et son historique, et consulte ses notifications et pénalités personnelles.
 
 ### Administrateur d’établissement
 
@@ -22,19 +22,31 @@ Gère les établissements et les rôles, et consulte les statistiques globales d
 
 ## Périmètre actuel
 
-La base commune et les parcours des lots 1, 3 et 4 sont intégrés :
+La base commune et les parcours des lots 1 à 4 sont intégrés :
 
 - Connexion, déconnexion et récupération de la session courante.
 - Renouvellement de session selon le contrat de l’API.
 - Navigation protégée par authentification et par rôle.
 - Client HTTP partagé, gestion cohérente des erreurs 401/403 et layout commun.
 - Accueils adaptés aux trois profils, avec accès rapides et indicateurs administratifs disponibles.
+- Nom et prénom de la personne connectée dans l'espace de travail ; code court de l'établissement (par ex. `IPD` ou `UCAD`) pour les rôles établissement et étudiant. L'admin plateforme n'est rattaché à aucun tenant établissement.
+- Barre supérieure fixe pendant le défilement. Pour les étudiants et admins d'établissement, son bouton Notifications ouvre un aperçu des cinq messages récents au maximum et un lien vers la page complète.
 
 Le lot 1 a commencé par deux tranches :
 
 - **Mon profil** : consultation via `GET /api/profil` et mise à jour via `PUT /api/profil`.
 - **Catalogue ouvrages** : recherche et filtres filière/niveau/catégorie via l’API, puis consultation du détail d’un ouvrage.
 - **Emprunts** : demande depuis la fiche, liste personnelle et accès à la lecture d’un emprunt actif.
+
+Le lot 2 complète l’espace étudiant :
+
+- **Catalogue des mémoires** : recherche et filtres par filière, niveau et année via `GET /api/memoires`.
+- **Détail mémoire** : consultation de la fiche et téléchargement des fichiers disponibles via l’API protégée.
+- **Favoris** : liste, ajout et retrait d’ouvrages ou de mémoires via `/api/favoris`, depuis les deux catalogues et la fiche détaillée d’un mémoire. Le cœur reflète l’état enregistré.
+- **Historique** : consultation des emprunts et lectures, filtrable par type via `GET /api/historique`.
+- **Notifications et pénalités** : consultation via `GET /api/notifications/mes-notifications` et `GET /api/penalites/mes-penalites`, avec marquage individuel comme lu.
+
+Ces routes sont réservées au rôle étudiant et les services backend limitent chaque réponse au compte et au tenant authentifiés.
 
 La lecture utilise `GET /api/emprunts/{id}/lire` et un téléchargement PDF protégé qui revérifie le tenant, le propriétaire et le statut actif de l’emprunt. L’admin d’établissement peut téléverser/remplacer le PDF associé à un ouvrage de son tenant ; seuls les PDF valides jusqu’à 20 Mo sont acceptés. Les fichiers sont stockés sous `OUVRAGES_STORAGE_DIR` et ne sont jamais exposés par une URL publique.
 
@@ -77,6 +89,8 @@ Le lot 4 comprend le tableau de bord établissement, la gestion des emprunts et 
 - L’étudiant peut consulter et mettre à jour son profil avec les validations prévues par l’API.
 - L’étudiant peut rechercher les ouvrages et filtrer par filière, niveau et catégorie selon les paramètres supportés par l’API.
 - L’étudiant peut créer un emprunt, le retrouver dans sa liste et ouvrir la lecture si le backend fournit une URL de document.
+- L’étudiant peut parcourir et filtrer les mémoires, consulter leur détail et télécharger les fichiers disponibles.
+- L’étudiant peut consulter ses favoris et son historique, puis marquer ses notifications comme lues et consulter ses pénalités.
 - L’admin d’établissement peut téléverser un PDF uniquement pour un ouvrage de son tenant.
 - L’admin d’établissement peut gérer les ouvrages, mémoires, fichiers associés, étudiants et référentiels de son tenant.
 - L’admin d’établissement peut activer et désactiver les comptes étudiants via l’API.
@@ -84,3 +98,10 @@ Le lot 4 comprend le tableau de bord établissement, la gestion des emprunts et 
 - Un PDF n’est servi qu’à l’étudiant propriétaire d’un emprunt actif du tenant courant.
 - Les vues restent compréhensibles pendant le chargement et en cas d’erreur.
 - Les autres membres peuvent réutiliser les conventions et composants communs pour construire leurs lots.
+- La navigation affiche le nom de la personne connectée et, pour les espaces établissement, le code court du tenant sans le préfixe technique `tenant-`.
+- L’aperçu des notifications est accessible depuis la barre supérieure, présente un état vide explicite et mène à la page complète.
+- Les cœurs des cartes ouvrage et mémoire ajoutent puis retirent le favori de façon persistante.
+
+## Données de démonstration
+
+Le jeu local contient l'Institut Polytechnique de Dakar (`IPD`) et l'Université Cheikh Anta Diop de Dakar (`UCAD`), 57 comptes étudiants, deux admins d'établissement, un admin plateforme, 20 ouvrages et 20 mémoires. Les établissements sont réels ; les identités étudiantes, comptes de test et contenus bibliographiques sont des exemples plausibles, non des données réelles vérifiées. Aucun PDF d'ouvrage n'est fourni par ce seed.

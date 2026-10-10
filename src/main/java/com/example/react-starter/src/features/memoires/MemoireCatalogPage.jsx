@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, FileText, RotateCcw, Search } from 'lucide-react'
+import { ArrowRight, FileText, Heart, RotateCcw, Search } from 'lucide-react'
 import { api } from '../../api/client.js'
 import MemoireVisual from './MemoireVisual.jsx'
 
@@ -19,6 +19,8 @@ export default function MemoireCatalogPage() {
     const [result, setResult] = useState({ key: '', memoires: [] })
     const [failure, setFailure] = useState({ key: '', message: '' })
     const [optionsError, setOptionsError] = useState('')
+    const [favorites, setFavorites] = useState([])
+    const [busyId, setBusyId] = useState('')
     const requestKey = JSON.stringify([search, filiereId, niveauId, annee, retryVersion])
     const memoires = result.key === requestKey ? result.memoires : []
     const loading = result.key !== requestKey && failure.key !== requestKey
@@ -38,6 +40,14 @@ export default function MemoireCatalogPage() {
 
     useEffect(() => {
         const controller = new AbortController()
+        api.get('/api/favoris', { signal: controller.signal })
+            .then(({ data }) => setFavorites(Array.isArray(data) ? data : []))
+            .catch(() => setFavorites([]))
+        return () => controller.abort()
+    }, [])
+
+    useEffect(() => {
+        const controller = new AbortController()
         api.get('/api/memoires', {
             params: {
                 search: search.trim() || undefined,
@@ -53,6 +63,28 @@ export default function MemoireCatalogPage() {
             })
         return () => controller.abort()
     }, [search, filiereId, niveauId, annee, retryVersion, requestKey])
+
+    function isFavorite(type, id) {
+        return favorites.some((favori) => favori.typeRessource === type && favori.ressourceId === id)
+    }
+
+    async function toggleFavori(type, id) {
+        const existingFavorite = favorites.find((favori) => favori.typeRessource === type && favori.ressourceId === id)
+        setBusyId(id)
+        try {
+            if (existingFavorite) {
+                await api.delete(`/api/favoris/${existingFavorite.id}`)
+                setFavorites((previous) => previous.filter((favori) => favori.id !== existingFavorite.id))
+            } else {
+                const { data } = await api.post('/api/favoris', { typeRessource: type, ressourceId: id })
+                setFavorites((previous) => [data, ...previous])
+            }
+        } catch {
+            // L'utilisateur peut réessayer.
+        } finally {
+            setBusyId('')
+        }
+    }
 
     function resetFilters() {
         setSearch('')
@@ -74,12 +106,20 @@ export default function MemoireCatalogPage() {
         {loading && <div className="catalog-state" role="status">Chargement des mémoires…</div>}
         {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
         {!loading && !error && memoires.length === 0 && <div className="catalog-state"><FileText size={24} /><h2>Aucun mémoire trouvé</h2><p>Essaie un autre terme ou modifie les filtres.</p><button className="text-button" onClick={resetFilters}>Effacer les filtres</button></div>}
-        {!loading && !error && memoires.length > 0 && <div className="catalog-book-grid">{memoires.map((memoire) => <article className="catalog-book-card" key={memoire.id}>
-            <MemoireVisual memoire={memoire} />
-            <div className="catalog-book-info"><div className="catalog-book-meta"><span>{memoire.encadreur}</span>{memoire.filiere?.nom && <span>{memoire.filiere.nom}</span>}</div><h3>{memoire.titre}</h3><p>{memoire.auteur}</p>
-                {memoire.niveau?.nom && <span className="catalog-level">{memoire.niveau.nom}</span>}
-                <Link className="details-link" to={`/app/etudiant/memoires/${memoire.id}`}>Consulter la fiche<ArrowRight size={15} /></Link>
-            </div>
-        </article>)}</div>}
+        {!loading && !error && memoires.length > 0 && <div className="catalog-book-grid">{memoires.map((memoire) => {
+            const saved = isFavorite('MEMOIRE', memoire.id)
+            return <article className="catalog-book-card" key={memoire.id}>
+                <MemoireVisual memoire={memoire} />
+                <div className="catalog-book-info"><div className="catalog-book-meta"><span>{memoire.encadreur}</span>{memoire.filiere?.nom && <span>{memoire.filiere.nom}</span>}</div><h3>{memoire.titre}</h3><p>{memoire.auteur}</p>
+                    {memoire.niveau?.nom && <span className="catalog-level">{memoire.niveau.nom}</span>}
+                    <div className="book-card-actions">
+                        <Link className="details-link" to={`/app/etudiant/memoires/${memoire.id}`}>Consulter la fiche<ArrowRight size={15} /></Link>
+                        <button type="button" className={`save-button${saved ? ' saved' : ''}`} onClick={() => toggleFavori('MEMOIRE', memoire.id)} disabled={busyId === memoire.id} aria-pressed={saved} aria-label={saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
+                            <Heart size={15} fill={saved ? 'currentColor' : 'none'} />
+                        </button>
+                    </div>
+                </div>
+            </article>
+        })}</div>}
     </section>
 }

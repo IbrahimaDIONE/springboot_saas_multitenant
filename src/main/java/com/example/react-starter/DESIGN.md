@@ -16,9 +16,12 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 ## Règles d'interface
 
 - Navigation latérale sur grand écran : le menu défile indépendamment si la hauteur manque, les actions de session restent fixes en bas. Navigation compacte sur mobile.
+- Barre supérieure sticky au-dessus du contenu, avec fil d'Ariane et identité de session. Le compte affiche le prénom et le nom ; les espaces établissement affichent uniquement le code court (`IPD`, `UCAD`), jamais le tenant technique complet. L'espace plateforme n'affiche pas de tenant.
+- Notifications accessibles depuis la barre supérieure pour les étudiants et admins d'établissement : popover ancré au bouton, jusqu'à cinq éléments récents, état vide explicite et action « Voir tout » vers la page Notifications. Aucun appel de notification n'est fait pour les rôles qui n'ont pas accès à cette ressource.
 - Grilles et tableaux alignés, marges régulières et angles discrets (4 à 8 px).
 - Actions principales nommées ; icônes Lucide réservées aux commandes compactes et accompagnées d'un libellé accessible.
-- La déconnexion utilise le corail pour se distinguer des liens de navigation. Le tenant apparaît dans l'espace établissement, pas dans l'espace plateforme.
+- Le contrôle favori est un bouton cœur sur les cartes d'ouvrage et de mémoire. Son état enregistré est indiqué par le corail, `aria-pressed` et un libellé accessible qui bascule entre ajout et retrait.
+- La déconnexion utilise le corail pour se distinguer des liens de navigation. Le code court du tenant apparaît dans les espaces étudiant et établissement, pas dans l'espace plateforme.
 - Les couvertures servent de repères visuels ; les métadonnées restent lisibles et hiérarchisées.
 - Chaque écran de données prévoit chargement, absence de résultat, erreur et contenu normal.
 - Les couleurs ne portent jamais seules une information : associer un libellé ou une icône.
@@ -44,6 +47,11 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 16. **Notifications établissement** : historique automatique consultable et filtrable par type.
 17. **Règles et pénalités** : configuration du délai de tolérance et de la conséquence, consultation des pénalités appliquées.
 18. **Plateforme** : gestion des établissements et rôles, consultation des statistiques globales.
+19. **Catalogue mémoires** : recherche et filtres filière, niveau et année, avec fiches visuelles cohérentes au catalogue ouvrages.
+20. **Détail mémoire** : métadonnées, fichiers PDF disponibles et commande de favori.
+21. **Favoris** : liste commune des ouvrages et mémoires enregistrés, avec accès aux fiches et retrait.
+22. **Historique étudiant** : emprunts et consultations filtrables par type d’activité.
+23. **Notifications étudiant** : notifications automatiques, compteurs de non-lues, marquage comme lu et consultation des pénalités.
 
 ## Comportement et accessibilité
 
@@ -60,3 +68,5 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 L’administration des documents est réservée à l’admin établissement. Le téléchargement PDF est servi après vérification du tenant, du propriétaire et de l’emprunt actif ; un ouvrage sans fichier présente un état indisponible. Le serveur contrôle le type PDF et limite les fichiers à 20 Mo.
 
 Les ouvrages et mémoires déclenchent une notification pour les étudiants actifs du même tenant, de la même filière et du même niveau. Les rappels, avertissements et pénalités suivent les échéances et les règles de l'établissement. Les notifications sont internes à l'application ; aucun envoi e-mail ou SMS n'est défini.
+
+Le seed local fournit des identités et des contenus de démonstration plausibles, pas un corpus authentifié de personnes ou de publications. Les deux noms d'établissement sont conservés comme références ; aucun PDF d'ouvrage n'est inclus dans les données de démonstration.
