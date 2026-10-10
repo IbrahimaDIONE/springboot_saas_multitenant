@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, BookOpen, RotateCcw, Search } from 'lucide-react'
+import { ArrowRight, BookOpen, Heart, RotateCcw, Search } from 'lucide-react'
 import { api } from '../../api/client.js'
 import BookVisual from './BookVisual.jsx'
 
@@ -20,6 +20,8 @@ export default function BookCatalogPage() {
   const [result, setResult] = useState({ key: '', books: [] })
   const [failure, setFailure] = useState({ key: '', message: '' })
   const [optionsError, setOptionsError] = useState('')
+  const [favorites, setFavorites] = useState([])
+  const [busyId, setBusyId] = useState('')
   const requestKey = JSON.stringify([search, filiereId, niveauId, categorieId, retryVersion])
   const books = result.key === requestKey ? result.books : []
   const loading = result.key !== requestKey && failure.key !== requestKey
@@ -42,6 +44,14 @@ export default function BookCatalogPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    api.get('/api/favoris', { signal: controller.signal })
+      .then(({ data }) => setFavorites(Array.isArray(data) ? data : []))
+      .catch(() => setFavorites([]))
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
     api.get('/api/ouvrages', {
       params: {
         search: search.trim() || undefined,
@@ -57,6 +67,28 @@ export default function BookCatalogPage() {
       })
     return () => controller.abort()
   }, [search, filiereId, niveauId, categorieId, retryVersion, requestKey])
+
+  function isFavorite(type, id) {
+    return favorites.some((favori) => favori.typeRessource === type && favori.ressourceId === id)
+  }
+
+  async function toggleFavori(type, id) {
+    const existingFavorite = favorites.find((favori) => favori.typeRessource === type && favori.ressourceId === id)
+    setBusyId(id)
+    try {
+      if (existingFavorite) {
+        await api.delete(`/api/favoris/${existingFavorite.id}`)
+        setFavorites((previous) => previous.filter((favori) => favori.id !== existingFavorite.id))
+      } else {
+        const { data } = await api.post('/api/favoris', { typeRessource: type, ressourceId: id })
+        setFavorites((previous) => [data, ...previous])
+      }
+    } catch {
+      // L'utilisateur peut réessayer.
+    } finally {
+      setBusyId('')
+    }
+  }
 
   function resetFilters() {
     setSearch('')
@@ -78,12 +110,20 @@ export default function BookCatalogPage() {
     {loading && <div className="catalog-state" role="status">Chargement des ouvrages…</div>}
     {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && books.length === 0 && <div className="catalog-state"><BookOpen size={24} /><h2>Aucun ouvrage trouvé</h2><p>Essaie un autre terme ou modifie les filtres.</p><button className="text-button" onClick={resetFilters}>Effacer les filtres</button></div>}
-    {!loading && !error && books.length > 0 && <div className="catalog-book-grid">{books.map((book) => <article className="catalog-book-card" key={book.id}>
-      <BookVisual book={book} />
-      <div className="catalog-book-info"><div className="catalog-book-meta"><span>{book.categorie?.nom || 'Sans catégorie'}</span>{book.filiere?.nom && <span>{book.filiere.nom}</span>}</div><h3>{book.titre}</h3><p>{book.auteur}</p>
-        {book.niveau?.nom && <span className="catalog-level">{book.niveau.nom}</span>}
-        <Link className="details-link" to={`/app/etudiant/catalogue/${book.id}`}>Consulter la fiche<ArrowRight size={15} /></Link>
-      </div>
-    </article>)}</div>}
+    {!loading && !error && books.length > 0 && <div className="catalog-book-grid">{books.map((book) => {
+      const saved = isFavorite('OUVRAGE', book.id)
+      return <article className="catalog-book-card" key={book.id}>
+        <BookVisual book={book} />
+        <div className="catalog-book-info"><div className="catalog-book-meta"><span>{book.categorie?.nom || 'Sans catégorie'}</span>{book.filiere?.nom && <span>{book.filiere.nom}</span>}</div><h3>{book.titre}</h3><p>{book.auteur}</p>
+          {book.niveau?.nom && <span className="catalog-level">{book.niveau.nom}</span>}
+          <div className="book-card-actions">
+            <Link className="details-link" to={`/app/etudiant/catalogue/${book.id}`}>Consulter la fiche<ArrowRight size={15} /></Link>
+            <button type="button" className={`save-button${saved ? ' saved' : ''}`} onClick={() => toggleFavori('OUVRAGE', book.id)} disabled={busyId === book.id} aria-pressed={saved} aria-label={saved ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
+              <Heart size={15} fill={saved ? 'currentColor' : 'none'} />
+            </button>
+          </div>
+        </div>
+      </article>
+    })}</div>}
   </section>
 }

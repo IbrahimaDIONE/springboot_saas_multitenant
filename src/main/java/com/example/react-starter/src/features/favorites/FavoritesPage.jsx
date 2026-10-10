@@ -40,7 +40,7 @@ export default function FavoritesPage() {
         <div className="loans-heading"><span className="eyebrow">ESPACE ÉTUDIANT</span><h1>Mes favoris</h1><p>Retrouvez les ouvrages et mémoires que vous avez mis de côté.</p></div>
         {loading && <div className="catalog-state" role="status">Chargement de vos favoris…</div>}
         {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
-        {!loading && !error && favoris.length === 0 && <div className="catalog-state"><Heart size={24} /><h2>Aucun favori</h2><p>Ajoutez un ouvrage ou un mémoire à vos favoris depuis sa fiche détail.</p></div>}
+        {!loading && !error && favoris.length === 0 && <div className="catalog-state"><Heart size={24} /><h2>Aucun favori</h2><p>Ajoutez un ouvrage ou un mémoire à vos favoris depuis le catalogue, les mémoires ou la fiche détail.</p></div>}
         {!loading && !error && favoris.length > 0 && <div className="loans-list">{favoris.map((favori) => <article className="loan-item" key={favori.id}>
             <div className="loan-book-icon"><Heart size={18} /></div>
             <div className="loan-book-info"><h2>{favori.titre}</h2></div>

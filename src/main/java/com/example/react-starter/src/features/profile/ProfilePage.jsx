@@ -69,7 +69,7 @@ export default function ProfilePage() {
     {loading && <div className="profile-state" role="status">Chargement de votre profil…</div>}
     {!loading && error && !form && <div className="profile-state profile-error" role="alert">{error}<button className="text-button" onClick={() => window.location.reload()}>Réessayer</button></div>}
     {form && <form className="profile-form" onSubmit={handleSubmit}>
-      <div className="profile-account"><span className="profile-avatar"><UserRound size={20} /></span><div><strong>{profile.username}</strong><span>{roleLabels[profile.role] || profile.role}</span></div><span className="account-readonly">Compte universitaire</span></div>
+      <div className="profile-account"><span className="profile-avatar"><UserRound size={20} /></span><div><strong>{[profile.prenom, profile.nom].filter(Boolean).join(' ') || profile.username}</strong><span>{roleLabels[profile.role] || profile.role}</span></div><span className="account-readonly">Compte universitaire</span></div>
       <div className="profile-fields">
         <label htmlFor="profile-prenom">Prénom<input id="profile-prenom" name="prenom" value={form.prenom} onChange={updateField} maxLength={100} autoComplete="given-name" required disabled={saving} /></label>
         <label htmlFor="profile-nom">Nom<input id="profile-nom" name="nom" value={form.nom} onChange={updateField} maxLength={100} autoComplete="family-name" required disabled={saving} /></label>

@@ -39,16 +39,16 @@ public class NotificationServiceImpl implements NotificationService {
         this.reglePenaliteMapper     = reglePenaliteMapper;
     }
 
-    private UUID currentUserId() {
+        private String currentUsername() {
         Authentication auth = SecurityContextHolder
                 .getContext().getAuthentication();
         Jwt jwt = (Jwt) auth.getPrincipal();
-        return UUID.fromString(jwt.getSubject());
+                return jwt.getSubject();
     }
 
     private Etudiant currentEtudiant(String tenantId) {
         return etudiantRepository
-                .findByUtilisateur_IdAndUtilisateur_TenantId(currentUserId(), tenantId)
+                                .findByUsernameEtTenant(currentUsername(), tenantId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Étudiant non trouvé"));
     }

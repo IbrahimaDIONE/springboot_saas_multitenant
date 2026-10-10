@@ -1,9 +1,28 @@
 package com.example.saas.service.impl;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.example.saas.domain.Emprunt;
 import com.example.saas.domain.Etudiant;
@@ -16,17 +35,8 @@ import com.example.saas.repository.EtudiantRepository;
 import com.example.saas.repository.NotificationRepository;
 import com.example.saas.repository.PenaliteRepository;
 import com.example.saas.repository.ReglePenaliteRepository;
+import com.example.saas.tenant.TenantContext;
 import com.example.saas.tenant.TenantProvider;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class PenaliteServiceImplTest {
@@ -45,6 +55,37 @@ class PenaliteServiceImplTest {
         service = new PenaliteServiceImpl(
                 penalites, emprunts, regles, notifications, etudiants, mapper, tenant);
     }
+
+        @AfterEach
+        void clearRequestContext() {
+        TenantContext.clear();
+        SecurityContextHolder.clearContext();
+        }
+
+        @Test
+        void shouldResolvePenaltyOwnerFromJwtUsername() {
+        String tenantId = "tenant-a";
+        UUID studentId = UUID.randomUUID();
+        Etudiant etudiant = mock(Etudiant.class);
+        when(tenant.currentTenant()).thenReturn(tenantId);
+        when(etudiant.getId()).thenReturn(studentId);
+        when(etudiants.findByUsernameEtTenant("client-c", tenantId))
+            .thenReturn(Optional.of(etudiant));
+        when(penalites.findAllByTenantIdAndEtudiantIdOrderByDateApplicationDesc(tenantId, studentId))
+            .thenReturn(List.of());
+        Instant now = Instant.now();
+        Jwt jwt = Jwt.withTokenValue("test-token")
+            .header("alg", "HS256")
+            .subject("client-c")
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(900))
+            .build();
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(jwt, "test-token", List.of()));
+
+        assertThat(service.mesPenalites()).isEmpty();
+        verify(etudiants).findByUsernameEtTenant("client-c", tenantId);
+        }
 
     @Test
     void shouldSendReminderWhenLoanIsDueWithin48Hours() {

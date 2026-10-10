@@ -9,11 +9,27 @@ const homeByRole = {
 }
 let bootstrapRequest = null
 
-function toSession(data) {
+function toSession(data, profile) {
   const authorities = data.authorities || []
   const role = authorities.map((authority) => authority.replace(/^ROLE_/, '')).find((authority) => authority in homeByRole)
   if (!role) throw new Error('Le compte ne possède aucun rôle reconnu.')
-  return { username: data.username, tenantId: data.tenantId, role }
+  const tenantId = profile.tenantId || data.tenantId
+  const displayName = [profile.prenom, profile.nom].filter(Boolean).join(' ').trim()
+  return {
+    username: data.username,
+    displayName: displayName || data.username,
+    tenantId,
+    tenantLabel: tenantId?.replace(/^tenant-/i, '').toUpperCase(),
+    role,
+  }
+}
+
+async function loadCurrentSession() {
+  const [{ data: session }, { data: profile }] = await Promise.all([
+    api.get('/api/me'),
+    api.get('/api/profil'),
+  ])
+  return toSession(session, profile)
 }
 
 async function restoreSession() {
@@ -23,8 +39,7 @@ async function restoreSession() {
       if (!storedRefreshToken) return null
       const { data: tokens } = await api.post('/api/auth/refresh', { refreshToken: storedRefreshToken })
       setTokens(tokens)
-      const { data: session } = await api.get('/api/me')
-      return toSession(session)
+      return loadCurrentSession()
     })().finally(() => {
       bootstrapRequest = null
     })
@@ -64,8 +79,7 @@ export function AuthProvider({ children }) {
     const { data: tokens } = await api.post('/api/auth/login', { username, password })
     setTokens(tokens)
     try {
-      const { data: session } = await api.get('/api/me')
-      const currentUser = toSession(session)
+      const currentUser = await loadCurrentSession()
       setUser(currentUser)
       return currentUser
     } catch (error) {

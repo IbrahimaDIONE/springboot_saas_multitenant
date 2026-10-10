@@ -1,20 +1,30 @@
 package com.example.saas.service;
 
-import com.example.saas.domain.*;
-import com.example.saas.dto.*;
-import com.example.saas.exception.InvalidTokenException;
-import com.example.saas.repository.*;
-import com.example.saas.security.JwtService;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.HexFormat;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.time.*;
-import java.util.*;
+import com.example.saas.domain.RefreshToken;
+import com.example.saas.domain.TenantUser;
+import com.example.saas.dto.AuthResponse;
+import com.example.saas.dto.LoginRequest;
+import com.example.saas.dto.RefreshRequest;
+import com.example.saas.exception.InvalidTokenException;
+import com.example.saas.repository.EtablissementRepository;
+import com.example.saas.repository.RefreshTokenRepository;
+import com.example.saas.repository.TenantUserRepository;
+import com.example.saas.security.JwtService;
 
 /** Login et rotation des refresh tokens. Le tenant vient toujours du TenantUser chargé en base. */
 @Service
@@ -60,9 +70,7 @@ public class AuthService {
         if (!old.getUser().isEnabled()) {
             throw new InvalidTokenException("Compte désactivé");
         }
-        if (!etablissements.findByCode(old.getUser().getTenantId())
-                .map(etablissement -> "ACTIF".equals(etablissement.getStatut()))
-                .orElse(false)) {
+        if (!isTenantActive(old.getUser())) {
             throw new InvalidTokenException("Etablissement désactivé");
         }
         old.revoke();
@@ -90,5 +98,24 @@ public class AuthService {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private boolean isTenantActive(TenantUser user) {
+        if ("ADMIN_PLATEFORME".equalsIgnoreCase(user.getRole())
+                || "tenant-platform".equalsIgnoreCase(user.getTenantId())) {
+            return true;
+        }
+
+        return etablissements.findByCode(institutionCode(user.getTenantId()))
+                .map(etablissement -> "ACTIF".equals(etablissement.getStatut()))
+                .orElse(false);
+    }
+
+    private String institutionCode(String tenantId) {
+        String prefix = "tenant-";
+        String code = tenantId.regionMatches(true, 0, prefix, 0, prefix.length())
+                ? tenantId.substring(prefix.length())
+                : tenantId;
+        return code.toUpperCase(java.util.Locale.ROOT);
     }
 }

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Bell, BookOpen, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, ClipboardList, FileText, LogOut, ShieldAlert, Tags, UserRound, Users } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, BookOpen, BookOpenCheck, Building2, ChartNoAxesColumnIncreasing, ClipboardList, Clock, FileText, Heart, LogOut, ShieldAlert, Tags, UserRound, Users } from 'lucide-react'
 import { useAuth } from './auth/useAuth.js'
 import BookPdfManagementPage from './features/admin/BookPdfManagementPage.jsx'
 import BookManagementPage from './features/admin/BookManagementPage.jsx'
@@ -15,8 +15,13 @@ import EtablissementsPage from './features/admin/EtablissementsPage.jsx'
 import RolesAdminPage from './features/admin/RolesAdminPage.jsx'
 import BookCatalogPage from './features/catalog/BookCatalogPage.jsx'
 import BookDetailPage from './features/catalog/BookDetailPage.jsx'
+import FavoritesPage from './features/favorites/FavoritesPage.jsx'
+import HistoryPage from './features/history/HistoryPage.jsx'
 import MyLoansPage from './features/loans/MyLoansPage.jsx'
 import OnlineReadingPage from './features/loans/OnlineReadingPage.jsx'
+import MemoireCatalogPage from './features/memoires/MemoireCatalogPage.jsx'
+import MemoireDetailPage from './features/memoires/MemoireDetailPage.jsx'
+import NotificationsPage from './features/notifications/NotificationsPage.jsx'
 import ProfilePage from './features/profile/ProfilePage.jsx'
 import { api } from './api/client.js'
 import './App.css'
@@ -35,6 +40,10 @@ const homeContent = {
     actions: [
       { label: 'Explorer le catalogue', detail: 'Rechercher un ouvrage dans la bibliothèque.', path: '/app/etudiant/catalogue', icon: BookOpen },
       { label: 'Mes emprunts', detail: 'Consulter les échéances et reprendre une lecture.', path: '/app/etudiant/emprunts', icon: ClipboardList },
+      { label: 'Mémoires', detail: 'Explorer les mémoires de votre établissement.', path: '/app/etudiant/memoires', icon: FileText },
+      { label: 'Favoris', detail: 'Retrouver les ressources enregistrées.', path: '/app/etudiant/favoris', icon: Heart },
+      { label: 'Historique', detail: 'Revoir vos emprunts et consultations.', path: '/app/etudiant/historique', icon: Clock },
+      { label: 'Notifications', detail: 'Consulter les rappels et messages de la bibliothèque.', path: '/app/etudiant/notifications', icon: Bell },
       { label: 'Mon profil', detail: 'Vérifier vos informations de compte.', path: '/app/etudiant/profil', icon: UserRound },
     ],
   },
@@ -92,8 +101,13 @@ function AppRoutes() {
     <Route path="/app/etudiant/profil" element={<RoleRoute role="ETUDIANT"><ProfilePage /></RoleRoute>} />
     <Route path="/app/etudiant/catalogue" element={<RoleRoute role="ETUDIANT"><BookCatalogPage /></RoleRoute>} />
     <Route path="/app/etudiant/catalogue/:ouvrageId" element={<RoleRoute role="ETUDIANT"><BookDetailPage /></RoleRoute>} />
+    <Route path="/app/etudiant/memoires" element={<RoleRoute role="ETUDIANT"><MemoireCatalogPage /></RoleRoute>} />
+    <Route path="/app/etudiant/memoires/:memoireId" element={<RoleRoute role="ETUDIANT"><MemoireDetailPage /></RoleRoute>} />
     <Route path="/app/etudiant/emprunts" element={<RoleRoute role="ETUDIANT"><MyLoansPage /></RoleRoute>} />
     <Route path="/app/etudiant/emprunts/:empruntId/lire" element={<RoleRoute role="ETUDIANT"><OnlineReadingPage /></RoleRoute>} />
+    <Route path="/app/etudiant/favoris" element={<RoleRoute role="ETUDIANT"><FavoritesPage /></RoleRoute>} />
+    <Route path="/app/etudiant/historique" element={<RoleRoute role="ETUDIANT"><HistoryPage /></RoleRoute>} />
+    <Route path="/app/etudiant/notifications" element={<RoleRoute role="ETUDIANT"><NotificationsPage /></RoleRoute>} />
     <Route path="/app/etablissement/documents" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookPdfManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/ouvrages" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><BookManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/memoires" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><MemoireManagementPage /></RoleRoute>} />
@@ -147,7 +161,7 @@ function RoleHome() {
   return <section className="content common-home">
     <header className="admin-heading home-heading">
       <span className="eyebrow">{content.eyebrow}</span>
-      <h1>Bienvenue, {user.username}.</h1>
+      <h1>Bienvenue, {user.displayName}.</h1>
       <p>{content.description}</p>
     </header>
 
@@ -226,6 +240,38 @@ function AppLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+  const menuRef = useRef(null)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [recentNotifications, setRecentNotifications] = useState([])
+
+  const notificationRoute = user.role === 'ETUDIANT' ? '/app/etudiant/notifications' : '/app/etablissement/notifications'
+  const notificationCount = recentNotifications.filter((notification) => !notification.lu).length
+
+  useEffect(() => {
+    if (!user || !['ETUDIANT', 'ADMIN_ETABLISSEMENT'].includes(user.role)) {
+      setRecentNotifications([])
+      return undefined
+    }
+    const controller = new AbortController()
+    const endpoint = user.role === 'ETUDIANT' ? '/api/notifications/mes-notifications' : '/api/notifications'
+
+    api.get(endpoint, { signal: controller.signal })
+      .then(({ data }) => setRecentNotifications(Array.isArray(data) ? data.slice(0, 5) : []))
+      .catch(() => setRecentNotifications([]))
+
+    return () => controller.abort()
+  }, [user])
+
+  useEffect(() => {
+    if (!notificationsOpen) return undefined
+    function handlePointerDown(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setNotificationsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    return () => document.removeEventListener('mousedown', handlePointerDown)
+  }, [notificationsOpen])
 
   async function handleLogout() {
     try {
@@ -233,6 +279,11 @@ function AppLayout({ children }) {
     } finally {
       navigate('/login', { replace: true })
     }
+  }
+
+  function formatAlertDate(value) {
+    if (!value) return '—'
+    return new Date(value).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
   }
 
   return <div className="app-shell">
@@ -243,6 +294,10 @@ function AppLayout({ children }) {
         <NavLink to={homeByRolePath(user.role)} end className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Accueil</NavLink>
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/catalogue" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Catalogue</NavLink>}
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Mes emprunts</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/memoires" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><FileText size={18} />Mémoires</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/favoris" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Heart size={18} />Favoris</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/historique" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Clock size={18} />Historique</NavLink>}
+        {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/notifications" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Bell size={18} />Notifications</NavLink>}
         {user.role === 'ETUDIANT' && <NavLink to="/app/etudiant/profil" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><UserRound size={18} />Mon profil</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/ouvrages" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpen size={18} />Ouvrages</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/memoires" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><FileText size={18} />Mémoires</NavLink>}
@@ -258,13 +313,47 @@ function AppLayout({ children }) {
       </nav>
       <div className="sidebar-bottom">
         <button className="nav-item logout-link" onClick={handleLogout}><LogOut size={18} />Se déconnecter</button>
-        <div className="tenant-card"><span className="tenant-mark"><UserRound size={16} /></span><span><strong>{user.username}</strong><small>{roleLabels[user.role]}</small></span></div>
+        <div className="tenant-card"><span className="tenant-mark"><UserRound size={16} /></span><span><strong>{user.displayName}</strong><small>{roleLabels[user.role]}</small></span></div>
       </div>
     </aside>
     <main className="main-area">
       <header className="topbar">
         <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{getBreadcrumbLabel(location.pathname)}</strong></div>
-        <div className="topbar-actions"><span className="role-pill">{roleLabels[user.role]}</span>{user.role !== 'ADMIN_PLATEFORME' && user.tenantId && <span className="tenant-label">{user.tenantId}</span>}</div>
+        <div className="topbar-actions">
+          {(user.role === 'ETUDIANT' || user.role === 'ADMIN_ETABLISSEMENT') && (
+            <div className="topbar-notification-wrap" ref={menuRef}>
+              <button type="button" className="notification-bell" onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notifications récentes" aria-expanded={notificationsOpen}>
+                <Bell size={17} />
+                {notificationCount > 0 && <span className="notification-badge">{notificationCount}</span>}
+              </button>
+              {notificationsOpen && (
+                <div className="notification-popover" role="dialog" aria-label="Notifications récentes">
+                  <div className="notification-popover-head">
+                    <strong>Notifications</strong>
+                    <NavLink to={notificationRoute} onClick={() => setNotificationsOpen(false)}>Voir tout</NavLink>
+                  </div>
+                  {recentNotifications.length === 0 ? (
+                    <div className="notification-popover-empty">Aucune notification récente.</div>
+                  ) : (
+                    <div className="notification-popover-items">
+                      {recentNotifications.map((notification) => (
+                        <NavLink key={notification.id} to={notificationRoute} className="notification-popover-item" onClick={() => setNotificationsOpen(false)}>
+                          <span className={`notification-dot${notification.lu ? '' : ' unread'}`} />
+                          <span className="notification-popover-copy">
+                            <strong>{notification.message}</strong>
+                            <small>{formatAlertDate(notification.createdAt)}</small>
+                          </span>
+                        </NavLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          <span className="role-pill">{roleLabels[user.role]}</span>
+          {user.role !== 'ADMIN_PLATEFORME' && user.tenantLabel && <span className="tenant-label">{user.tenantLabel}</span>}
+        </div>
       </header>
       {children}
     </main>
@@ -272,6 +361,10 @@ function AppLayout({ children }) {
 }
 
 function getBreadcrumbLabel(pathname) {
+  if (pathname.startsWith('/app/etudiant/memoires/')) return 'Détail du mémoire'
+  if (pathname === '/app/etudiant/memoires') return 'Mémoires'
+  if (pathname.endsWith('/favoris')) return 'Mes favoris'
+  if (pathname.endsWith('/historique')) return 'Mon historique'
   if (pathname.endsWith('/dashboard')) return 'Tableau de bord'
   if (pathname.endsWith('/ouvrages')) return 'Gestion des ouvrages'
   if (pathname.endsWith('/memoires')) return 'Gestion des mémoires'
