@@ -115,4 +115,8 @@ mapper/      entités JPA vers réponses publiques
 
 ## Production
 
+Le pipeline GitHub Actions et les fichiers Docker de production sont décrits
+dans [le guide de déploiement VPS](deploy/README.md). Cible :
+`https://bibliouniv.duckdns.org`.
+
 Utilisez HTTPS, une clé longue générée aléatoirement ou un couple RSA, OAuth2/OIDC, cookies `HttpOnly` si le frontend est web, rotation/nettoyage des refresh tokens, limitation de débit, audit et PostgreSQL Row-Level Security.

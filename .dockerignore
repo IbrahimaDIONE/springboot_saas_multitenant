@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/dist
+**/target
+.env
+.env.*
+data
+*.tar
+*.tar.gz

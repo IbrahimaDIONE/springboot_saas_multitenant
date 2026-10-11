@@ -1,0 +1,17 @@
+{$DOMAIN} {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy api:8081
+	}
+	handle /actuator/health {
+		reverse_proxy api:8081
+	}
+	handle /actuator/* {
+		respond 404
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

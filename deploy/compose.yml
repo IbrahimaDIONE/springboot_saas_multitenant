@@ -1,0 +1,52 @@
+name: bibliouniv
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: saas
+      POSTGRES_USER: saas
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD obligatoire}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U saas -d saas']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  api:
+    image: bibliouniv-api:${IMAGE_TAG:?IMAGE_TAG obligatoire}
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/saas
+      DB_USER: saas
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD obligatoire}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET obligatoire}
+      PORT: 8081
+      MEMOIRES_STORAGE_DIR: /data/memoires
+      OUVRAGES_STORAGE_DIR: /data/ouvrages
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+    volumes:
+      - documents:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+  web:
+    image: bibliouniv-web:${IMAGE_TAG:?IMAGE_TAG obligatoire}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-bibliouniv.duckdns.org}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+volumes:
+  postgres_data:
+  documents:
+  caddy_data:
+  caddy_config:

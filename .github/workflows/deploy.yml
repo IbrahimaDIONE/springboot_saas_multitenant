@@ -1,0 +1,60 @@
+name: CI/CD BiblioUniv
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: bibliouniv-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test backend and build images
+        run: |
+          docker build -t bibliouniv-api:${{ github.sha }} .
+          docker build -f deploy/Dockerfile.web -t bibliouniv-web:${{ github.sha }} .
+      - name: Package release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir bundle
+          docker save bibliouniv-api:${{ github.sha }} bibliouniv-web:${{ github.sha }} | gzip > bundle/images.tar.gz
+          cp deploy/compose.yml deploy/release.sh bundle/
+      - uses: actions/upload-artifact@v4
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          name: release
+          path: bundle/
+          retention-days: 3
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release
+          path: bundle
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/*
+      - name: Transfer and deploy
+        run: |
+          ssh -o BatchMode=yes root@82.29.172.15 'mkdir -p /opt/bibliouniv/releases/${{ github.sha }}'
+          scp -o BatchMode=yes bundle/* root@82.29.172.15:/opt/bibliouniv/releases/${{ github.sha }}/
+          ssh -o BatchMode=yes root@82.29.172.15 'bash /opt/bibliouniv/releases/${{ github.sha }}/release.sh ${{ github.sha }}'
+      - name: Remove SSH credentials
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
