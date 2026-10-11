@@ -19,4 +19,9 @@ public interface TenantUserRepository extends JpaRepository<TenantUser, UUID> {
 
     @Query("select u from TenantUser u where u.id = :id and u.tenantId = :tenantId and u.role = :role")
     Optional<TenantUser> findByIdAndTenantIdAndRole(@Param("id") UUID id, @Param("tenantId") String tenantId, @Param("role") String role);
+
+    @Query("select u from TenantUser u where (:tenantId is null or u.tenantId = :tenantId) order by u.tenantId, u.username")
+    List<TenantUser> findAllForRoleManagement(@Param("tenantId") String tenantId);
+
+    long countByRoleAndEnabledTrue(String role);
 }

@@ -1,0 +1,5 @@
+.history-tabs{display:flex;gap:8px;margin:22px 0 4px}
+.history-tab{padding:8px 14px;border:1px solid var(--line);border-radius:99px;background:#fff;color:#5c685f;font:600 11px var(--sans);cursor:pointer}
+.history-tab.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.history-action{justify-self:start;padding:5px 8px;border-radius:99px;background:#f2ede1;color:#8a6a1f;font-size:9px;font-weight:600}
+.history-action--emprunt{background:#eef3ef;color:#3f7758}

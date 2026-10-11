@@ -51,8 +51,8 @@ public class EtudiantServiceImpl implements EtudiantService {
     @Transactional(readOnly = true)
     public List<EtudiantResponse> findAll() {
         return etudiants
-            .findAllByUtilisateur_TenantIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
-                tenant.currentTenant())
+            .findAllByUtilisateur_TenantIdAndUtilisateur_RoleOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
+                tenant.currentTenant(), ROLE)
                 .stream()
             .map(this::toResponse)
                 .toList();
@@ -87,6 +87,20 @@ public class EtudiantServiceImpl implements EtudiantService {
             throw new ResourceNotFoundException("Étudiant introuvable");
         }
         user.setEnabled(true);
+        return toResponse(etudiant);
+    }
+
+    @Override
+    public EtudiantResponse deactivate(UUID id) {
+        Etudiant etudiant =
+                etudiants
+                        .findByIdAndUtilisateur_TenantId(id, tenant.currentTenant())
+                        .orElseThrow(() -> new ResourceNotFoundException("Étudiant introuvable"));
+        TenantUser user = etudiant.getUtilisateur();
+        if (!ROLE.equals(user.getRole())) {
+            throw new ResourceNotFoundException("Étudiant introuvable");
+        }
+        user.setEnabled(false);
         return toResponse(etudiant);
     }
 

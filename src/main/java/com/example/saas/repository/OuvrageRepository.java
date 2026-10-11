@@ -17,6 +17,7 @@ public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
               and o.actif = true
               and (:filiereId is null or o.filiere.id = :filiereId)
               and (:niveauId is null or o.niveau.id = :niveauId)
+              and (:categorieId is null or o.categorie.id = :categorieId)
               and (lower(o.titre) like lower(concat('%', :search, '%'))
                    or lower(o.auteur) like lower(concat('%', :search, '%'))
                    or lower(o.resume) like lower(concat('%', :search, '%')))
@@ -26,7 +27,8 @@ public interface OuvrageRepository extends JpaRepository<Ouvrage, UUID> {
             @Param("tenantId") String tenantId,
             @Param("search") String search,
             @Param("filiereId") UUID filiereId,
-            @Param("niveauId") UUID niveauId);
+            @Param("niveauId") UUID niveauId,
+            @Param("categorieId") UUID categorieId);
 
     Optional<Ouvrage> findByIdAndTenantId(UUID id, String tenantId);
 

@@ -1,6 +1,7 @@
 package com.example.saas.service;
 
 import com.example.saas.dto.*;
+import com.example.saas.domain.Ouvrage;
 import java.util.*;
 
 public interface NotificationService {
@@ -10,10 +11,10 @@ public interface NotificationService {
     List<NotificationResponse> mesNotificationsNonLues();
     NotificationResponse       marquerLu(UUID id);
     long                       compterNonLues();
-    void                       notifierNouvelleRessource(String tenantId, String titre);
+        void                       notifierNouvelleRessource(
+            String tenantId, String titre, UUID filiereId, UUID niveauId);
 
     // Admin
-    NotificationResponse       envoyer(NotificationRequest request);
     List<NotificationResponse> findAllByTenant();
 
     // Règles de pénalité

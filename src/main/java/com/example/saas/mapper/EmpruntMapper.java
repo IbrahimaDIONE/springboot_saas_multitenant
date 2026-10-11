@@ -10,6 +10,7 @@ public class EmpruntMapper {
     public EmpruntResponse toResponse(Emprunt e) {
         return new EmpruntResponse(
                 e.getId(),
+            e.getEtudiant().getId(),
                 e.getOuvrage().getId(),
                 e.getOuvrage().getTitre(),
                 e.getOuvrage().getAuteur(),

@@ -87,6 +87,13 @@ public class TenantUser {
         this.enabled = enabled;
     }
 
+    public void setRole(String role) {
+        if (role == null || role.isBlank()) {
+            throw new IllegalArgumentException("Le rôle est obligatoire.");
+        }
+        this.role = role;
+    }
+
     /** Compte étudiant créé par l'admin d'établissement, inactif jusqu'à activation. */
     public static TenantUser newEtudiant(
             String tenantId,

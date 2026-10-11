@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.FieldError;
 
@@ -112,6 +113,17 @@ public class GlobalExceptionHandler {
                 request,
                 fields);
     }
+
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        ResponseEntity<ApiError> uploadTooLarge(
+                        MaxUploadSizeExceededException exception, HttpServletRequest request) {
+                return build(
+                                HttpStatus.PAYLOAD_TOO_LARGE,
+                                "FILE_TOO_LARGE",
+                                "Le fichier ne peut pas dépasser 20 Mo.",
+                                request,
+                                Map.of());
+        }
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> unexpected(Exception exception, HttpServletRequest request) {

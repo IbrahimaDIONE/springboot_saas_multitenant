@@ -1,0 +1,8 @@
+.memoire-detail-favorite{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.memoire-files{display:grid;gap:10px;margin-top:20px}
+.memoire-files h2{margin:0 0 4px;color:var(--ink);font:500 22px var(--display)}
+.memoire-file-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:5px;background:#fff}
+.memoire-file-info{display:grid;gap:3px;min-width:0}
+.memoire-file-info strong{color:#233c32;font:500 13px var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memoire-file-info span{color:#89938d;font-size:10px}
+.memoire-file-unavailable{color:#a54e3e;font-size:10px}

@@ -1,11 +1,9 @@
 package com.example.saas.service.impl;
 
-import com.example.saas.domain.*;
-import com.example.saas.dto.PenaliteResponse;
-import com.example.saas.mapper.PenaliteMapper;
-import com.example.saas.repository.*;
-import com.example.saas.service.PenaliteService;
-import com.example.saas.tenant.TenantProvider;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,10 +11,20 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.UUID;
+import com.example.saas.domain.Emprunt;
+import com.example.saas.domain.Etudiant;
+import com.example.saas.domain.Notification;
+import com.example.saas.domain.Penalite;
+import com.example.saas.domain.ReglePenalite;
+import com.example.saas.dto.PenaliteResponse;
+import com.example.saas.mapper.PenaliteMapper;
+import com.example.saas.repository.EmpruntRepository;
+import com.example.saas.repository.EtudiantRepository;
+import com.example.saas.repository.NotificationRepository;
+import com.example.saas.repository.PenaliteRepository;
+import com.example.saas.repository.ReglePenaliteRepository;
+import com.example.saas.service.PenaliteService;
+import com.example.saas.tenant.TenantProvider;
 
 @Service
 @Transactional
@@ -70,39 +78,52 @@ public class PenaliteServiceImpl implements PenaliteService {
                     emprunt.getTenantId(), emprunt.getEtudiant().getId(),
                     Notification.Type.RAPPEL_ECHEANCE, now.minus(1, ChronoUnit.DAYS))) {
             notifications.save(new Notification(emprunt.getTenantId(), emprunt.getEtudiant(),
-                "Votre emprunt arrive à échéance dans moins de 48 heures.",
+                    "L'emprunt de « " + emprunt.getOuvrage().getTitre()
+                        + " » arrive à échéance dans moins de 48 heures.",
                 Notification.Type.RAPPEL_ECHEANCE));
             }
             if (emprunt.getStatut() == Emprunt.Statut.ACTIF
                     && emprunt.getDateExpiration().isBefore(now)) {
                 emprunt.retarder();
-                String tenantId = emprunt.getTenantId();
-                if (!penalites.existsByTenantIdAndEmpruntId(tenantId, emprunt.getId())) {
-                    ReglePenalite regle = regles.findAllByTenantIdOrderByCreatedAtDesc(tenantId)
-                            .stream().findFirst().orElse(null);
-                    String consequence = regle == null
-                            ? ReglePenalite.TypeConsequence.AVERTISSEMENT.name()
-                            : regle.getTypeConsequence().name();
-                    Penalite penalite = penalites.save(new Penalite(
-                            tenantId, emprunt.getEtudiant(), emprunt,
-                            "Retard de restitution de l'ouvrage", consequence));
                     notifications.save(new Notification(
-                            tenantId, emprunt.getEtudiant(),
-                            "Une pénalité a été appliquée à votre emprunt.",
-                            Notification.Type.PENALITE));
-                    if (regle != null && regle.getTypeConsequence()
-                            == ReglePenalite.TypeConsequence.SUSPENSION_TEMPORAIRE) {
+                        emprunt.getTenantId(), emprunt.getEtudiant(),
+                        "L'emprunt de « " + emprunt.getOuvrage().getTitre()
+                            + " » est en retard. Consultez les règles de pénalité de votre établissement.",
+                        Notification.Type.AVERTISSEMENT_RETARD));
+                    }
+
+                    if (emprunt.getStatut() == Emprunt.Statut.RETARDE) {
+                    String tenantId = emprunt.getTenantId();
+                    ReglePenalite regle = regles.findAllByTenantIdOrderByCreatedAtDesc(tenantId)
+                        .stream().findFirst().orElse(null);
+                    if (regle == null
+                        || now.isBefore(emprunt.getDateExpiration()
+                            .plus(regle.getJoursTolérance(), ChronoUnit.DAYS))
+                        || penalites.existsByTenantIdAndEmpruntId(tenantId, emprunt.getId())) {
+                        continue;
+                    }
+
+                    penalites.save(new Penalite(
+                        tenantId, emprunt.getEtudiant(), emprunt,
+                        "Retard de restitution de l'ouvrage",
+                        regle.getTypeConsequence().name()));
+                    notifications.save(new Notification(
+                        tenantId, emprunt.getEtudiant(),
+                        "Une pénalité a été appliquée à l'emprunt de « "
+                            + emprunt.getOuvrage().getTitre() + " ».",
+                        Notification.Type.PENALITE));
+                    if (regle.getTypeConsequence()
+                        == ReglePenalite.TypeConsequence.SUSPENSION_TEMPORAIRE) {
                         emprunt.getEtudiant().getUtilisateur().setEnabled(false);
                     }
-                }
             }
         }
     }
 
     private Etudiant currentEtudiant(String tenantId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UUID userId = UUID.fromString(((Jwt) authentication.getPrincipal()).getSubject());
-        return etudiants.findByUtilisateur_IdAndUtilisateur_TenantId(userId, tenantId)
+        String username = ((Jwt) authentication.getPrincipal()).getSubject();
+        return etudiants.findByUsernameEtTenant(username, tenantId)
             .orElseThrow(() -> new IllegalStateException("Étudiant non trouvé"));
     }
 }

@@ -59,15 +59,6 @@ public class NotificationController {
 
     // ── ADMIN ─────────────────────────────────────
 
-    /** Admin : envoyer une notification à un étudiant */
-    @PostMapping("/api/notifications")
-    @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")
-    public NotificationResponse envoyer(
-            @Valid @RequestBody NotificationRequest request) {
-        return service.envoyer(request);
-    }
-
     /** Admin : toutes les notifications de l'établissement */
     @GetMapping("/api/notifications")
     @PreAuthorize("hasRole('ADMIN_ETABLISSEMENT')")

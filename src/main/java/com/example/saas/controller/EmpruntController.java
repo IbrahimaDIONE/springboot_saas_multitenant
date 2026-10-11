@@ -6,6 +6,10 @@ import com.example.saas.service.EmpruntService;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,6 +57,17 @@ public class EmpruntController {
     @PreAuthorize("hasRole('ETUDIANT')")
     public LectureResponse lireEnLigne(@PathVariable UUID id) {
         return service.lireEnLigne(id);
+    }
+
+    @GetMapping(value = "/{id}/lire/fichier", produces = MediaType.APPLICATION_PDF_VALUE)
+    @PreAuthorize("hasRole('ETUDIANT')")
+    public ResponseEntity<byte[]> lireFichier(@PathVariable UUID id) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.inline().filename("ouvrage-" + id + ".pdf").build());
+        headers.setCacheControl("private, no-store");
+        headers.set("X-Content-Type-Options", "nosniff");
+        return new ResponseEntity<>(service.lireFichier(id), headers, HttpStatus.OK);
     }
 
     @PatchMapping("/{id}/retour")

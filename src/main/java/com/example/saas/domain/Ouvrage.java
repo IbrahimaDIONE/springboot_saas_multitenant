@@ -40,6 +40,7 @@ public class Ouvrage extends BaseTenantEntity {
     }
 
     public void associerCategorie(Categorie categorie) { this.categorie = categorie; }
+    public void associerFichier(String urlFichier) { this.urlFichier = urlFichier; }
 
     public void update(String titre, String auteur, String resume, Filiere filiere, Niveau niveau) {
         if (titre == null || titre.isBlank()
