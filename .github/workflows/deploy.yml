@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: release
@@ -43,12 +44,12 @@ jobs:
       - name: Configure SSH
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS"
+          test -n "$SSH_KEY"
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          install -m 600 deploy/known_hosts ~/.ssh/known_hosts
+          printf 'Host 82.29.172.15\n  StrictHostKeyChecking yes\n  HostKeyAlgorithms ssh-ed25519\n' > ~/.ssh/config
           chmod 600 ~/.ssh/*
       - name: Transfer and deploy
         run: |

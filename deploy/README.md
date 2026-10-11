@@ -45,17 +45,18 @@ ssh-keygen -t ed25519 -f bibliouniv_deploy -N '' -C github-bibliouniv
 Ajouter le contenu de `bibliouniv_deploy.pub` au fichier
 `/root/.ssh/authorized_keys` du VPS (dossier mode 700, fichier mode 600).
 Dans GitHub → Settings → Environments, créer l'environnement `production` et
-limiter les déploiements à `main`. Ajouter ses deux secrets :
+limiter les déploiements à `main`. Ajouter son secret :
 
 | Secret | Contenu |
 | --- | --- |
 | `VPS_SSH_KEY` | Clé privée complète `bibliouniv_deploy` |
-| `VPS_KNOWN_HOSTS` | Entrée SSH vérifiée pour `82.29.172.15` |
 
-Obtenir l'entrée avec `ssh-keyscan -t ed25519 82.29.172.15`, puis comparer son
-empreinte avec celle affichée depuis la console du fournisseur VPS :
-`ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub`.
-Ne pas faire confiance au seul résultat de `ssh-keyscan`.
+La clé publique SSH du VPS est épinglée dans `deploy/known_hosts` ; aucun secret
+`VPS_KNOWN_HOSTS` n'est nécessaire. Empreinte ED25519 vérifiée sur le VPS :
+`SHA256:jN28c2MDypbUErG5Fe2kRRwA9vWYTozKchPHSZycneg`.
+Après une réinstallation du VPS, vérifier sa nouvelle empreinte depuis la console
+du fournisseur avec `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` avant de
+modifier ce fichier. La vérification stricte SSH reste activée.
 Ne jamais ajouter de clé privée ou de mot de passe au dépôt. Le mot de passe
 root communiqué dans la conversation doit être remplacé avec `passwd`.
 
