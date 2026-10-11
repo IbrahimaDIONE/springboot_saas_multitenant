@@ -36,15 +36,31 @@ services:
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN:-bibliouniv.duckdns.org}
-    ports:
-      - '80:80'
-      - '443:443'
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: azure-devops-migration_gitlab-net
+      traefik.http.routers.bibliouniv.rule: Host(`${DOMAIN:-bibliouniv.duckdns.org}`)
+      traefik.http.routers.bibliouniv.entrypoints: websecure
+      traefik.http.routers.bibliouniv.tls: 'true'
+      traefik.http.routers.bibliouniv.tls.certresolver: letsencrypt
+      traefik.http.services.bibliouniv.loadbalancer.server.port: '80'
+      traefik.http.routers.bibliouniv-http.rule: Host(`${DOMAIN:-bibliouniv.duckdns.org}`)
+      traefik.http.routers.bibliouniv-http.entrypoints: web
+      traefik.http.routers.bibliouniv-http.middlewares: bibliouniv-https
+      traefik.http.middlewares.bibliouniv-https.redirectscheme.scheme: https
     volumes:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
       api:
         condition: service_healthy
+networks:
+  proxy:
+    external: true
+    name: azure-devops-migration_gitlab-net
 volumes:
   postgres_data:
   documents:

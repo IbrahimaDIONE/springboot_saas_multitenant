@@ -14,8 +14,9 @@ Vérifier `docker compose version` et la disponibilité de l'option `up --wait`.
 
 Le DNS A de `bibliouniv.duckdns.org` doit pointer vers `82.29.172.15`.
 Supprimer/corriger un éventuel AAAA incorrect. Autoriser les ports TCP 22, 80 et
-443 dans le pare-feu du VPS et du fournisseur. Les ports 80/443 doivent être
-libres ; adapter le reverse proxy existant si nécessaire. PostgreSQL et l'API
+443 dans le pare-feu du VPS et du fournisseur. Le Traefik existant gère déjà ces
+ports ; le frontend rejoint son réseau `azure-devops-migration_gitlab-net`.
+PostgreSQL et l'API
 ne publient aucun port directement.
 
 Créer les secrets sur le VPS, une seule fois (ne pas écraser un `.env` existant) :
@@ -80,7 +81,8 @@ Ne pas lancer le service `web` tant que ces comptes ne sont pas sécurisés.
 - Sauvegarde PostgreSQL avant les migrations si la base existe déjà.
 - Démarrage avec attente du contrôle de santé, puis vérification du site HTTPS.
 
-Caddy délivre et renouvelle le certificat TLS automatiquement. Il sert React
+Traefik délivre et renouvelle le certificat TLS avec son resolver `letsencrypt`.
+Caddy écoute en HTTP uniquement sur le réseau Docker. Il sert React
 avec le fallback SPA et transmet `/api/*` à Spring Boot, sans changer l'URL.
 Références : [configuration Caddy](https://caddyserver.com/docs/caddyfile/patterns)
 et [attente Compose](https://docs.docker.com/reference/cli/docker/compose/up/).
