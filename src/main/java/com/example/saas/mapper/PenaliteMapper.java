@@ -9,7 +9,7 @@ public class PenaliteMapper {
     public PenaliteResponse toResponse(Penalite penalite) {
         return new PenaliteResponse(
                 penalite.getId(),
-                penalite.getEtudiant().getId(),
+                penalite.getEtudiant() == null ? null : penalite.getEtudiant().getId(),
                 penalite.getEmprunt().getId(),
                 penalite.getMotif(),
                 penalite.getDateApplication(),

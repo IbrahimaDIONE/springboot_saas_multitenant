@@ -71,6 +71,9 @@ public class PenaliteServiceImpl implements PenaliteService {
     public void traiterRetards() {
         Instant now = Instant.now();
         for (Emprunt emprunt : emprunts.findAll()) {
+            if (emprunt.getEtudiant() == null) {
+                continue;
+            }
             if (emprunt.getStatut() == Emprunt.Statut.ACTIF
                 && emprunt.getDateExpiration().isAfter(now)
                 && emprunt.getDateExpiration().isBefore(now.plus(2, ChronoUnit.DAYS))

@@ -14,8 +14,7 @@ public interface EtudiantService {
     EtudiantResponse create(EtudiantRequest request);
 
     EtudiantResponse activate(UUID id);
-
     EtudiantResponse deactivate(UUID id);
-
+    void delete(UUID id);
     ImportEtudiantsResponse importExcel(MultipartFile file);
 }

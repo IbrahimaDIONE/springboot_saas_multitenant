@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen, Heart, RotateCcw, Search } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import BookVisual from './BookVisual.jsx'
 
 function getErrorMessage(error) {
@@ -24,6 +26,7 @@ export default function BookCatalogPage() {
   const [busyId, setBusyId] = useState('')
   const requestKey = JSON.stringify([search, filiereId, niveauId, categorieId, retryVersion])
   const books = result.key === requestKey ? result.books : []
+  const bookPage = usePagination(books)
   const loading = result.key !== requestKey && failure.key !== requestKey
   const error = failure.key === requestKey ? failure.message : ''
 
@@ -110,7 +113,7 @@ export default function BookCatalogPage() {
     {loading && <div className="catalog-state" role="status">Chargement des ouvrages…</div>}
     {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && books.length === 0 && <div className="catalog-state"><BookOpen size={24} /><h2>Aucun ouvrage trouvé</h2><p>Essaie un autre terme ou modifie les filtres.</p><button className="text-button" onClick={resetFilters}>Effacer les filtres</button></div>}
-    {!loading && !error && books.length > 0 && <div className="catalog-book-grid">{books.map((book) => {
+    {!loading && !error && books.length > 0 && <div className="catalog-book-grid">{bookPage.items.map((book) => {
       const saved = isFavorite('OUVRAGE', book.id)
       return <article className="catalog-book-card" key={book.id}>
         <BookVisual book={book} />
@@ -125,5 +128,6 @@ export default function BookCatalogPage() {
         </div>
       </article>
     })}</div>}
+    {!loading && !error && <PaginationControls {...bookPage} />}
   </section>
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ShieldAlert, RotateCcw, Plus, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 const emptyForm = { joursTolérance: '', typeConsequence: '', description: '' }
 
@@ -11,6 +13,7 @@ export default function ReglesPenaliteAdminPage() {
     const [failure, setFailure] = useState({ key: '', message: '' })
     const requestKey = String(retryVersion)
     const regles = result.key === requestKey ? result.regles : []
+    const reglesPage = usePagination(regles)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -27,6 +30,7 @@ export default function ReglesPenaliteAdminPage() {
     const [penalitesVersion, setPenalitesVersion] = useState(0)
     const penalitesRequestKey = String(penalitesVersion)
     const penalites = penalitesResult.key === penalitesRequestKey ? penalitesResult.penalites : []
+    const penalitesPage = usePagination(penalites)
     const penalitesLoading = penalitesResult.key !== penalitesRequestKey && penalitesFailure.key !== penalitesRequestKey
     const penalitesError = penalitesFailure.key === penalitesRequestKey ? penalitesFailure.message : ''
 
@@ -223,7 +227,7 @@ export default function ReglesPenaliteAdminPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {regles.map(regle => (
+                        {reglesPage.items.map(regle => (
                             <tr key={regle.id}>
                                 <td data-label="Jours de tolérance">{regle.joursTolérance}</td>
                                 <td data-label="Conséquence"><span className="badge">{regle.typeConsequence}</span></td>
@@ -242,6 +246,7 @@ export default function ReglesPenaliteAdminPage() {
                     </table>
                 </div>
             )}
+            {!loading && !error && <PaginationControls {...reglesPage} />}
         </div>
 
         <div className="notifications-list-section">
@@ -283,7 +288,7 @@ export default function ReglesPenaliteAdminPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {penalites.map(p => (
+                        {penalitesPage.items.map(p => (
                             <tr key={p.id}>
                                 <td data-label="Étudiant">{p.etudiantId}</td>
                                 <td data-label="Emprunt">{p.empruntId}</td>
@@ -296,6 +301,7 @@ export default function ReglesPenaliteAdminPage() {
                     </table>
                 </div>
             )}
+            {!penalitesLoading && !penalitesError && <PaginationControls {...penalitesPage} />}
         </div>
     </section>
 }

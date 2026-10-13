@@ -119,9 +119,12 @@ public class EmpruntServiceImpl implements EmpruntService {
         String tenantId = TenantContext.get();
         Emprunt emprunt = empruntRepository.findByIdAndTenantId(id, tenantId)
                 .orElseThrow(() -> new ResourceNotFoundException("Emprunt non trouvé"));
-        if (isStudent() && !emprunt.getEtudiant().getUtilisateur().getUsername()
-                .equalsIgnoreCase(currentUsername())) {
-            throw new ResourceNotFoundException("Emprunt non trouvé");
+        if (isStudent()) {
+            Etudiant proprietaire = emprunt.getEtudiant();
+            if (proprietaire == null || !proprietaire.getUtilisateur().getUsername()
+                    .equalsIgnoreCase(currentUsername())) {
+                throw new ResourceNotFoundException("Emprunt non trouvé");
+            }
         }
         return mapper.toResponse(emprunt);
     }
@@ -194,7 +197,7 @@ public class EmpruntServiceImpl implements EmpruntService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Emprunt non trouvé"));
 
-        if (!emprunt.getEtudiant().getId().equals(etudiant.getId())) {
+        if (emprunt.getEtudiant() == null || !emprunt.getEtudiant().getId().equals(etudiant.getId())) {
             throw new ResourceNotFoundException("Emprunt non trouvé");
         }
 

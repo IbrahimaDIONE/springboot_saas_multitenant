@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FileUp, LibraryBig, RotateCcw } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 export default function BookPdfManagementPage() {
   const [retryVersion, setRetryVersion] = useState(0)
@@ -8,6 +10,7 @@ export default function BookPdfManagementPage() {
   const [failure, setFailure] = useState({ key: '', message: '' })
   const requestKey = String(retryVersion)
   const books = result.key === requestKey ? result.books : []
+  const bookPage = usePagination(books)
   const loading = result.key !== requestKey && failure.key !== requestKey
   const error = failure.key === requestKey ? failure.message : ''
 
@@ -27,7 +30,8 @@ export default function BookPdfManagementPage() {
     {loading && <div className="catalog-state" role="status">Chargement des ouvrages…</div>}
     {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && books.length === 0 && <div className="catalog-state"><LibraryBig size={24} /><h2>Aucun ouvrage actif</h2><p>Les ouvrages de votre établissement apparaîtront ici.</p></div>}
-    {!loading && !error && books.length > 0 && <div className="book-files-list">{books.map((book) => <BookPdfRow key={book.id} book={book} />)}</div>}
+    {!loading && !error && books.length > 0 && <div className="book-files-list">{bookPage.items.map((book) => <BookPdfRow key={book.id} book={book} />)}</div>}
+    {!loading && !error && <PaginationControls {...bookPage} />}
   </section>
 }
 

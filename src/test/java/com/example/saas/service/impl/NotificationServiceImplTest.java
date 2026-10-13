@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,11 +47,12 @@ class NotificationServiceImplTest {
         String tenantId = "tenant-a";
         UUID filiereId = UUID.randomUUID();
         UUID niveauId = UUID.randomUUID();
-        Etudiant etudiant = org.mockito.Mockito.mock(Etudiant.class);
+        Etudiant premierEtudiant = org.mockito.Mockito.mock(Etudiant.class);
+        Etudiant deuxiemeEtudiant = org.mockito.Mockito.mock(Etudiant.class);
         when(etudiants
                 .findAllByUtilisateur_TenantIdAndUtilisateur_RoleAndUtilisateur_EnabledTrueAndFiliereIdAndNiveauIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
                         tenantId, "ETUDIANT", filiereId, niveauId))
-                .thenReturn(List.of(etudiant));
+                .thenReturn(List.of(premierEtudiant, deuxiemeEtudiant));
 
         NotificationServiceImpl service = new NotificationServiceImpl(
                 notifications, regles, etudiants, notificationMapper, regleMapper);
@@ -60,9 +62,15 @@ class NotificationServiceImplTest {
                 .findAllByUtilisateur_TenantIdAndUtilisateur_RoleAndUtilisateur_EnabledTrueAndFiliereIdAndNiveauIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
                         tenantId, "ETUDIANT", filiereId, niveauId);
         ArgumentCaptor<Notification> notification = ArgumentCaptor.forClass(Notification.class);
-        verify(notifications).save(notification.capture());
-        assertThat(notification.getValue().getType()).isEqualTo(Notification.Type.NOUVELLE_RESSOURCE);
-        assertThat(notification.getValue().getMessage()).contains("Algorithmique");
+        verify(notifications, times(2)).save(notification.capture());
+        assertThat(notification.getAllValues())
+                .extracting(Notification::getGroupId)
+                .containsOnly(notification.getAllValues().get(0).getGroupId());
+        assertThat(notification.getAllValues())
+                .allSatisfy(saved -> {
+                    assertThat(saved.getType()).isEqualTo(Notification.Type.NOUVELLE_RESSOURCE);
+                    assertThat(saved.getMessage()).contains("Algorithmique");
+                });
     }
 
     @Test

@@ -88,12 +88,12 @@ function CommonApp() {
 }
 
 function AppRoutes() {
-  const { user, loading, homeByRole } = useAuth()
+  const { user, loading, homeByRole, sessionExpired } = useAuth()
   if (loading) return <LoadingScreen />
 
   return <Routes>
     <Route path="/" element={<Navigate to={user ? homeByRole[user.role] : '/login'} replace />} />
-    <Route path="/login" element={user ? <Navigate to={homeByRole[user.role]} replace /> : <LoginPage />} />
+    <Route path="/login" element={user ? <Navigate to={homeByRole[user.role]} replace /> : <LoginPage sessionExpired={sessionExpired} />} />
     <Route path="/403" element={<ForbiddenPage />} />
     <Route path="/app/etudiant" element={<RoleRoute role="ETUDIANT"><RoleHome /></RoleRoute>} />
     <Route path="/app/etudiant/profil" element={<RoleRoute role="ETUDIANT"><ProfilePage /></RoleRoute>} />
@@ -191,7 +191,7 @@ function RoleHome() {
   </section>
 }
 
-function LoginPage() {
+function LoginPage({ sessionExpired }) {
   const { login, homeByRole } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState('')
@@ -226,6 +226,7 @@ function LoginPage() {
         <div className="password-label"><label htmlFor="password">Mot de passe</label></div>
         <input id="password" name="password" type="password" placeholder="Votre mot de passe" autoComplete="current-password" required disabled={submitting} />
         <button className="primary-button login-submit" type="submit" disabled={submitting}>{submitting ? 'Connexion…' : 'Se connecter'}<ArrowRight size={17} /></button>
+        {sessionExpired && <p className="form-notice" role="status">Votre session a expiré après 10 minutes d’inactivité. Veuillez vous reconnecter.</p>}
         {error && <p className="form-notice" role="alert">{error}</p>}
       </form>
       <span className="login-footer">Accès réservé aux membres de l’établissement</span>
@@ -241,18 +242,17 @@ function AppLayout({ children }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [recentNotifications, setRecentNotifications] = useState([])
 
-  const notificationRoute = user.role === 'ETUDIANT' ? '/app/etudiant/notifications' : '/app/etablissement/notifications'
+  const notificationRoute = '/app/etudiant/notifications'
   const notificationCount = recentNotifications.filter((notification) => !notification.lu).length
 
   useEffect(() => {
-    if (!user || !['ETUDIANT', 'ADMIN_ETABLISSEMENT'].includes(user.role)) {
+    if (!user || user.role !== 'ETUDIANT') {
       setRecentNotifications([])
       return undefined
     }
     const controller = new AbortController()
-    const endpoint = user.role === 'ETUDIANT' ? '/api/notifications/mes-notifications' : '/api/notifications'
 
-    api.get(endpoint, { signal: controller.signal })
+    api.get('/api/notifications/mes-notifications', { signal: controller.signal })
       .then(({ data }) => setRecentNotifications(Array.isArray(data) ? data.slice(0, 5) : []))
       .catch(() => setRecentNotifications([]))
 
@@ -316,7 +316,7 @@ function AppLayout({ children }) {
       <header className="topbar">
         <div className="breadcrumb"><span>BiblioUniv</span><span>/</span><strong>{getBreadcrumbLabel(location.pathname)}</strong></div>
         <div className="topbar-actions">
-          {(user.role === 'ETUDIANT' || user.role === 'ADMIN_ETABLISSEMENT') && (
+          {user.role === 'ETUDIANT' && (
             <div className="topbar-notification-wrap" ref={menuRef}>
               <button type="button" className="notification-bell" onClick={() => setNotificationsOpen((open) => !open)} aria-label="Notifications récentes" aria-expanded={notificationsOpen}>
                 <Bell size={17} />

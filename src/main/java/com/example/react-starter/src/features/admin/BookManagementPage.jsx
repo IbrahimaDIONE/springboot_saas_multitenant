@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Archive, BookOpen, FileUp, Pencil, Plus, RotateCcw, Search, Trash2, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './admin.css'
 
 const emptyBook = { titre: '', auteur: '', resume: '', filiereId: '', niveauId: '', categorieId: '' }
@@ -59,6 +61,7 @@ export default function BookManagementPage() {
     return books.filter((book) => [book.titre, book.auteur, book.filiere?.nom, book.categorie?.nom]
       .some((value) => value?.toLocaleLowerCase().includes(term)))
   }, [books, search])
+  const bookPage = usePagination(visibleBooks)
 
   function startCreate() {
     setFormOpen(true)
@@ -183,7 +186,7 @@ export default function BookManagementPage() {
     {!loading && error && <div className="admin-state admin-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && visibleBooks.length === 0 && <div className="admin-state"><BookOpen size={23} /><h2>{showArchives ? 'Aucun ouvrage archivé' : 'Aucun ouvrage trouvé'}</h2><p>{search ? 'Essayez un autre terme de recherche.' : 'Les ouvrages de votre établissement apparaîtront ici.'}</p></div>}
     {!loading && !error && visibleBooks.length > 0 && <div className="admin-record-list">
-      {visibleBooks.map((book) => <article className="admin-record" key={book.id}>
+      {bookPage.items.map((book) => <article className="admin-record" key={book.id}>
         <div className="admin-record-main">
           <span className="admin-record-eyebrow">{book.categorie?.nom || 'Ouvrage'}{book.filiere?.nom ? ` · ${book.filiere.nom}` : ''}</span>
           <h2>{book.titre}</h2>
@@ -198,5 +201,6 @@ export default function BookManagementPage() {
         </div>
       </article>)}
     </div>}
+    {!loading && !error && <PaginationControls {...bookPage} />}
   </section>
 }

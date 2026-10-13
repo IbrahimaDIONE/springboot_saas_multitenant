@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Archive, Download, FilePlus2, FileText, Pencil, Plus, RotateCcw, Search, Trash2, X } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './admin.css'
 
 const emptyMemoire = { titre: '', auteur: '', encadreur: '', resume: '', annee: new Date().getFullYear(), filiereId: '', niveauId: '' }
@@ -55,6 +57,7 @@ export default function MemoireManagementPage() {
     return memoires.filter((memoire) => [memoire.titre, memoire.auteur, memoire.encadreur, memoire.filiere?.nom]
       .some((value) => value?.toLocaleLowerCase().includes(term)))
   }, [memoires, search])
+  const memoirePage = usePagination(visibleMemoires)
 
   function clearForm() {
     setFormOpen(false)
@@ -241,7 +244,7 @@ export default function MemoireManagementPage() {
     {!loading && error && <div className="admin-state admin-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && visibleMemoires.length === 0 && <div className="admin-state"><FileText size={23} /><h2>{showArchives ? 'Aucun mémoire archivé' : 'Aucun mémoire trouvé'}</h2><p>{search ? 'Essayez un autre terme de recherche.' : 'Les mémoires de votre établissement apparaîtront ici.'}</p></div>}
     {!loading && !error && visibleMemoires.length > 0 && <div className="admin-record-list">
-      {visibleMemoires.map((memoire) => <article className="admin-record admin-record-stacked" key={memoire.id}>
+      {memoirePage.items.map((memoire) => <article className="admin-record admin-record-stacked" key={memoire.id}>
         <div className="admin-record-main">
           <span className="admin-record-eyebrow">{memoire.annee} · {memoire.filiere?.nom || 'Filière non définie'} · {memoire.niveau?.nom || 'Niveau non défini'}</span>
           <h2>{memoire.titre}</h2>
@@ -256,16 +259,13 @@ export default function MemoireManagementPage() {
         </div>
         <div className="admin-files">
           <div className="admin-files-heading"><h3>Documents associés</h3><span>{memoire.fichiers?.length || 0} fichier{memoire.fichiers?.length === 1 ? '' : 's'}</span></div>
-          {memoire.fichiers?.length > 0 && <ul className="admin-file-list">
-            {memoire.fichiers.map((file) => <li key={file.id}>
-              <span className="admin-file-name"><FileText size={15} /><span><strong>{file.nomOriginal}</strong><small>{formatFileSize(file.tailleOctets)} · {file.disponible ? 'Disponible' : 'Indisponible'}</small></span></span>
-              <div className="admin-file-actions">
-                <button className="secondary-button" type="button" onClick={() => downloadFile(memoire, file)} disabled={!file.disponible}><Download size={14} />Télécharger</button>
-                <button className="secondary-button" type="button" onClick={() => toggleFileAvailability(memoire, file)}>{file.disponible ? 'Rendre indisponible' : 'Rendre disponible'}</button>
-                <button className="danger-button" type="button" onClick={() => deleteFile(memoire, file)}><Trash2 size={14} />Supprimer</button>
-              </div>
-            </li>)}
-          </ul>}
+          {memoire.fichiers?.length > 0 && <MemoireAdminFiles
+            files={memoire.fichiers}
+            memoire={memoire}
+            onDownload={downloadFile}
+            onToggleAvailability={toggleFileAvailability}
+            onDelete={deleteFile}
+          />}
           {!showArchives && <label className="admin-upload">
             <FilePlus2 size={15} />{uploadingId === memoire.id ? 'Téléversement…' : 'Ajouter un PDF'}
             <input type="file" accept=".pdf,application/pdf" aria-label={`Ajouter un PDF au mémoire ${memoire.titre}`} disabled={Boolean(uploadingId)} onChange={(event) => { const input = event.currentTarget; uploadFile(memoire, input.files?.[0]).finally(() => { input.value = '' }) }} />
@@ -273,7 +273,26 @@ export default function MemoireManagementPage() {
         </div>
       </article>)}
     </div>}
+    {!loading && !error && <PaginationControls {...memoirePage} />}
   </section>
+}
+
+function MemoireAdminFiles({ files, memoire, onDownload, onToggleAvailability, onDelete }) {
+  const page = usePagination(files)
+
+  return <>
+    <ul className="admin-file-list">
+      {page.items.map((file) => <li key={file.id}>
+        <span className="admin-file-name"><FileText size={15} /><span><strong>{file.nomOriginal}</strong><small>{formatFileSize(file.tailleOctets)} · {file.disponible ? 'Disponible' : 'Indisponible'}</small></span></span>
+        <div className="admin-file-actions">
+          <button className="secondary-button" type="button" onClick={() => onDownload(memoire, file)} disabled={!file.disponible}><Download size={14} />Télécharger</button>
+          <button className="secondary-button" type="button" onClick={() => onToggleAvailability(memoire, file)}>{file.disponible ? 'Rendre indisponible' : 'Rendre disponible'}</button>
+          <button className="danger-button" type="button" onClick={() => onDelete(memoire, file)}><Trash2 size={14} />Supprimer</button>
+        </div>
+      </li>)}
+    </ul>
+    <PaginationControls {...page} />
+  </>
 }
 
 function formatFileSize(size) {

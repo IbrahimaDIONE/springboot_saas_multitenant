@@ -1,4 +1,9 @@
 .admin-page{padding-top:48px}
+.pagination-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:14px 0;color:#77827d;font-size:11px}
+.pagination-controls>div{display:flex;align-items:center;gap:9px}
+.pagination-controls .secondary-button{min-height:32px}
+.pagination-controls [aria-current=page]{min-width:40px;color:var(--ink);text-align:center;font-variant-numeric:tabular-nums}
+.admin-reference-card .pagination-controls{flex-wrap:wrap}
 .admin-heading h1{margin:11px 0 7px;color:var(--ink);font:500 40px/1.1 var(--display)}
 .admin-heading p{color:#77827d;font-size:13px}
 .admin-toolbar{display:flex;align-items:center;gap:10px;margin:27px 0 20px}
@@ -145,6 +150,9 @@
 .notifications-admin-page .notification-count{color:#78847d;font-size:10px}
 .notification-recipient{display:grid;gap:3px}
 .notification-recipient-username{color:#849087;font-size:9px}
+.notification-details-row>td{padding:0!important;background:#f8faf8}
+.notification-delivery-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:7px;margin:0;padding:12px;list-style:none}
+.notification-delivery-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid #e5eae5;border-radius:4px;background:#fff;font-size:10px}
 .emprunts-table{width:100%;overflow:auto;margin-top:14px;border:1px solid #e3e8e3;border-radius:5px;background:#fff}
 .emprunts-table table{width:100%;border-collapse:collapse;text-align:left}
 .emprunts-table th{padding:12px 14px;border-bottom:1px solid #e8ece8;background:#f7f8f6;color:#77847c;font-size:9px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;white-space:nowrap}
@@ -210,4 +218,14 @@
   .home-actions-section{margin-top:27px}
   .home-action-grid{grid-template-columns:1fr}
   .home-section-heading h2{font-size:22px}
+}
+
+@media(max-width:700px){
+  .sidebar-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+  .sidebar-bottom .logout-link{width:auto;min-height:34px;flex:none;padding:0 9px;font-size:10px}
+  .tenant-card{min-width:0;flex:1;border-top:0;padding:0 4px}
+  .tenant-card>span:nth-child(2){min-width:0}
+  .tenant-card strong,.tenant-card small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tenant-card strong{font-size:11px}
+  .tenant-card small{font-size:9px}
 }

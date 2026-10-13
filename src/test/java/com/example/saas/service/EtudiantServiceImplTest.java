@@ -14,6 +14,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.saas.domain.Etudiant;
@@ -29,12 +30,13 @@ class EtudiantServiceImplTest {
     @Mock EtudiantRepository etudiants;
     @Mock TenantProvider tenantProvider;
     @Mock PasswordEncoder passwordEncoder;
+    @Mock JdbcTemplate jdbcTemplate;
 
     private EtudiantServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new EtudiantServiceImpl(users, etudiants, tenantProvider, passwordEncoder);
+        service = new EtudiantServiceImpl(users, etudiants, tenantProvider, passwordEncoder, jdbcTemplate);
         when(tenantProvider.currentTenant()).thenReturn("tenant-b");
     }
 
@@ -107,5 +109,24 @@ class EtudiantServiceImplTest {
         assertThat(service.deactivate(etudiant.getId()).enabled()).isFalse();
         assertThat(student.isEnabled()).isFalse();
         verify(etudiants).findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b");
+    }
+
+    @Test
+    void shouldDeleteStudentAndAnonymizeBorrowingHistoryWithinTenant() {
+        TenantUser student =
+                TenantUser.newEtudiant(
+                        "tenant-b", "student-b", "{bcrypt}hash", "Diop", "Awa", "awa@example.com");
+        Etudiant etudiant = new Etudiant(student);
+        when(etudiants.findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b"))
+                .thenReturn(Optional.of(etudiant));
+
+        service.delete(etudiant.getId());
+
+        verify(jdbcTemplate).update("DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update("DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update("DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update("UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update("UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
+        verify(users).delete(student);
     }
 }

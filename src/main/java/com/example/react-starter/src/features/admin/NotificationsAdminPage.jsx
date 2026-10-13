@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Bell, RotateCcw } from 'lucide-react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Bell, ChevronDown, RotateCcw } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 const notificationFilters = [
     { value: 'TOUTES', label: 'Toutes' },
@@ -22,8 +24,25 @@ export default function NotificationsAdminPage() {
     const filteredNotifications = typeFilter === 'TOUTES'
         ? notifications
         : notifications.filter((notification) => notification.type === typeFilter)
+    const notificationGroups = useMemo(() => {
+        const groups = new Map()
+        for (const notification of filteredNotifications) {
+            const key = notification.groupId || notification.id
+            const group = groups.get(key)
+            if (group) group.push(notification)
+            else groups.set(key, [notification])
+        }
+        return Array.from(groups, ([id, deliveries]) => ({
+            id,
+            deliveries,
+            first: deliveries[0],
+            readCount: deliveries.filter((delivery) => delivery.lu).length,
+        }))
+    }, [filteredNotifications])
     const readCount = notifications.filter((notification) => notification.lu).length
     const unreadCount = notifications.length - readCount
+    const [expandedGroupId, setExpandedGroupId] = useState(null)
+    const notificationPage = usePagination(notificationGroups)
 
     useEffect(() => {
         const controller = new AbortController()
@@ -59,7 +78,7 @@ export default function NotificationsAdminPage() {
                         </button>
                     ))}
                 </div>
-                <span className="notification-count">{filteredNotifications.length} notification(s)</span>
+                <span className="notification-count">{notificationGroups.length} notification(s)</span>
             </div>
             <p className="notification-count" role="status">
                 {readCount} lue(s) · {unreadCount} non lue(s) sur {notifications.length} notification(s) envoyée(s)
@@ -101,36 +120,62 @@ export default function NotificationsAdminPage() {
                     <table>
                         <thead>
                         <tr>
-                            <th>Élève destinataire</th>
                             <th>Type</th>
                             <th>Message</th>
-                            <th>État de lecture</th>
+                            <th>Destinataires</th>
                             <th>Date d’envoi</th>
+                            <th>Détails</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredNotifications.map(notif => (
-                            <tr key={notif.id}>
-                                <td data-label="Élève destinataire">
-                                    <span className="notification-recipient">
-                                        <strong>{[notif.etudiantPrenom, notif.etudiantNom].filter(Boolean).join(' ') || 'Élève'}</strong>
-                                        {notif.etudiantUsername && <small className="notification-recipient-username">{notif.etudiantUsername}</small>}
-                                    </span>
-                                </td>
-                                <td data-label="Type">
-                    <span className={`badge badge--${notif.type.toLowerCase()}`}>
-                      {notif.type}
-                    </span>
-                                </td>
-                                <td data-label="Message">{notif.message}</td>
-                                <td data-label="État de lecture">{notif.lu ? 'Lue' : 'Non lue'}</td>
-                                <td data-label="Date d’envoi">{new Date(notif.createdAt).toLocaleString('fr-FR')}</td>
-                            </tr>
+                        {notificationPage.items.map(({ id, deliveries, first, readCount: groupReadCount }) => (
+                            <Fragment key={id}>
+                                <tr>
+                                    <td data-label="Type">
+                                        <span className={`badge badge--${first.type.toLowerCase()}`}>{first.type}</span>
+                                    </td>
+                                    <td data-label="Message">{first.message}</td>
+                                    <td data-label="Destinataires">{groupReadCount}/{deliveries.length} lue(s)</td>
+                                    <td data-label="Date d’envoi">{new Date(first.createdAt).toLocaleString('fr-FR')}</td>
+                                    <td data-label="Détails">
+                                        <button className="secondary-button" type="button" aria-expanded={expandedGroupId === id} onClick={() => setExpandedGroupId(expandedGroupId === id ? null : id)}>
+                                            <ChevronDown size={15} />{expandedGroupId === id ? 'Masquer' : `Voir ${deliveries.length} élève(s)`}
+                                        </button>
+                                    </td>
+                                </tr>
+                                {expandedGroupId === id && (
+                                    <tr className="notification-details-row">
+                                        <td colSpan="5">
+                                            <NotificationDeliveries deliveries={deliveries} />
+                                        </td>
+                                    </tr>
+                                )}
+                            </Fragment>
                         ))}
                         </tbody>
                     </table>
                 </div>
             )}
+            {!loading && !error && <PaginationControls {...notificationPage} />}
         </div>
     </section>
+}
+
+function NotificationDeliveries({ deliveries }) {
+    const page = usePagination(deliveries)
+
+    return <>
+        <ul className="notification-delivery-list">
+            {page.items.map((delivery) => (
+                <li key={delivery.id}>
+                    <span className="notification-recipient">
+                        <strong>{[delivery.etudiantPrenom, delivery.etudiantNom].filter(Boolean).join(' ') || 'Élève'}</strong>
+                        {delivery.etudiantUsername && <small className="notification-recipient-username">{delivery.etudiantUsername}</small>}
+                    </span>
+                    <span>{delivery.lu ? 'Vue' : 'Non vue'}</span>
+                </li>
+            ))}
+        </ul>
+        <PaginationControls {...page} />
+    </>
 }

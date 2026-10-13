@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Clock, RotateCcw } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './history.css'
 
 const tabs = [
@@ -23,6 +25,7 @@ export default function HistoryPage() {
     const [failure, setFailure] = useState({ key: '', message: '' })
     const requestKey = `${type}:${retryVersion}`
     const items = result.key === requestKey ? result.items : []
+    const historyPage = usePagination(items)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -42,12 +45,13 @@ export default function HistoryPage() {
         {loading && <div className="catalog-state" role="status">Chargement de l’historique…</div>}
         {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
         {!loading && !error && items.length === 0 && <div className="catalog-state"><Clock size={24} /><h2>Rien à afficher</h2><p>Votre activité apparaîtra ici au fil de vos emprunts et consultations.</p></div>}
-        {!loading && !error && items.length > 0 && <div className="loans-list">{items.map((item, index) => <article className="loan-item" key={`${item.typeRessource}-${item.ressourceId}-${index}`}>
+        {!loading && !error && items.length > 0 && <div className="loans-list">{historyPage.items.map((item, index) => <article className="loan-item" key={`${item.typeRessource}-${item.ressourceId}-${index}`}>
             <div className="loan-book-icon"><Clock size={18} /></div>
             <div className="loan-book-info"><h2>{item.titre || `Consultation de ${resourceLabels[item.typeRessource] || 'une ressource'}`}</h2></div>
             <span className={`history-action${item.typeAction === 'EMPRUNT' ? ' history-action--emprunt' : ''}`}>{item.typeAction === 'EMPRUNT' ? 'Emprunt' : 'Consultation'}</span>
             <div className="loan-dates"><span>{formatDate(item.date)}</span></div>
             <Link className="details-link" to={`${resourceLinks[item.typeRessource] || '/app/etudiant'}/${item.ressourceId}`}>Voir<ArrowRight size={15} /></Link>
         </article>)}</div>}
+        {!loading && !error && <PaginationControls {...historyPage} />}
     </section>
 }

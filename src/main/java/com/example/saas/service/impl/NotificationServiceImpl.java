@@ -112,13 +112,15 @@ public class NotificationServiceImpl implements NotificationService {
         List<Etudiant> etudiants = etudiantRepository
                 .findAllByUtilisateur_TenantIdAndUtilisateur_RoleAndUtilisateur_EnabledTrueAndFiliereIdAndNiveauIdOrderByUtilisateur_NomAscUtilisateur_PrenomAsc(
                                                 tenantId, "ETUDIANT", filiereId, niveauId);
-        for (Etudiant etudiant : etudiants) {
-            notificationRepository.save(new Notification(
-                    tenantId,
-                    etudiant,
-                                        "Nouvelle ressource disponible pour votre filière et niveau : " + titre,
-                    Notification.Type.NOUVELLE_RESSOURCE));
-        }
+            UUID groupId = UUID.randomUUID();
+            for (Etudiant etudiant : etudiants) {
+                notificationRepository.save(new Notification(
+                        tenantId,
+                        etudiant,
+                                            "Nouvelle ressource disponible pour votre filière et niveau : " + titre,
+                        Notification.Type.NOUVELLE_RESSOURCE,
+                        groupId));
+            }
     }
 
     // ── ADMIN ─────────────────────────────────────

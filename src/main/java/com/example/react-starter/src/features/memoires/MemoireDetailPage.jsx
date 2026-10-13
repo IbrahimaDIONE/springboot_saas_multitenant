@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Heart, RotateCcw } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import MemoireVisual from './MemoireVisual.jsx'
 import './memoires.css'
 
@@ -17,6 +19,8 @@ export default function MemoireDetailPage() {
     const memoire = result.key === requestKey ? result.memoire : null
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
+    const files = memoire?.fichiers || []
+    const filesPage = usePagination(files)
 
     useEffect(() => {
         const controller = new AbortController()
@@ -89,12 +93,13 @@ export default function MemoireDetailPage() {
                 <div className="memoire-files">
                     <h2>Fichiers</h2>
                     {(!memoire.fichiers || memoire.fichiers.length === 0) && <p>Aucun fichier n’a encore été déposé pour ce mémoire.</p>}
-                    {memoire.fichiers?.map((fichier) => <div className="memoire-file-row" key={fichier.id}>
+                    {filesPage.items.map((fichier) => <div className="memoire-file-row" key={fichier.id}>
                         <div className="memoire-file-info"><strong>{fichier.nomOriginal}</strong><span>{Math.round(fichier.tailleOctets / 1024)} Ko</span></div>
                         {fichier.disponible
                             ? <button className="secondary-button" onClick={() => downloadFile(fichier)} disabled={downloadingId === fichier.id}>{downloadingId === fichier.id ? 'Téléchargement…' : 'Télécharger'}<Download size={15} /></button>
                             : <span className="memoire-file-unavailable">Indisponible</span>}
                     </div>)}
+                    <PaginationControls {...filesPage} />
                 </div>
             </div>
         </div>}

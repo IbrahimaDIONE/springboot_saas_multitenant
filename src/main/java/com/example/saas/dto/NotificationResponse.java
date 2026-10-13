@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record NotificationResponse(
         UUID    id,
+        UUID    groupId,
         UUID    etudiantId,
         String  etudiantPrenom,
         String  etudiantNom,

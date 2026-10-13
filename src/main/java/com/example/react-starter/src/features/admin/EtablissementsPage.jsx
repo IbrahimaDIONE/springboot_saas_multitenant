@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Building2, RotateCcw, Plus, Power, Pencil, Trash2, X, BarChart3, Users } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 const emptyAdmin = { username: '', password: '', nom: '', prenom: '', email: '' }
 const emptyForm = { code: '', nom: '', statut: 'ACTIF', parametres: [], administrateur: emptyAdmin }
@@ -18,6 +20,7 @@ export default function EtablissementsPage() {
     const [failure, setFailure] = useState({ key: '', message: '' })
     const requestKey = String(retryVersion)
     const etablissements = result.key === requestKey ? result.etablissements : []
+    const etablissementsPage = usePagination(etablissements)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -314,7 +317,7 @@ export default function EtablissementsPage() {
                         <tr><th>Nom</th><th>Code</th><th>Statut</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                        {etablissements.map(etab => (
+                        {etablissementsPage.items.map(etab => (
                             <tr key={etab.code}>
                                 <td>{etab.nom}</td>
                                 <td><code>{etab.code}</code></td>
@@ -345,6 +348,7 @@ export default function EtablissementsPage() {
                     </table>
                 </div>
             )}
+            {!loading && !error && <PaginationControls {...etablissementsPage} />}
         </div>
     </section>
 }

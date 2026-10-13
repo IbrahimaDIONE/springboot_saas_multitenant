@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, FileText, Heart, RotateCcw, Search } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import MemoireVisual from './MemoireVisual.jsx'
 
 function getErrorMessage(error) {
@@ -23,6 +25,7 @@ export default function MemoireCatalogPage() {
     const [busyId, setBusyId] = useState('')
     const requestKey = JSON.stringify([search, filiereId, niveauId, annee, retryVersion])
     const memoires = result.key === requestKey ? result.memoires : []
+    const memoirePage = usePagination(memoires)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -106,7 +109,7 @@ export default function MemoireCatalogPage() {
         {loading && <div className="catalog-state" role="status">Chargement des mémoires…</div>}
         {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
         {!loading && !error && memoires.length === 0 && <div className="catalog-state"><FileText size={24} /><h2>Aucun mémoire trouvé</h2><p>Essaie un autre terme ou modifie les filtres.</p><button className="text-button" onClick={resetFilters}>Effacer les filtres</button></div>}
-        {!loading && !error && memoires.length > 0 && <div className="catalog-book-grid">{memoires.map((memoire) => {
+        {!loading && !error && memoires.length > 0 && <div className="catalog-book-grid">{memoirePage.items.map((memoire) => {
             const saved = isFavorite('MEMOIRE', memoire.id)
             return <article className="catalog-book-card" key={memoire.id}>
                 <MemoireVisual memoire={memoire} />
@@ -121,5 +124,6 @@ export default function MemoireCatalogPage() {
                 </div>
             </article>
         })}</div>}
+        {!loading && !error && <PaginationControls {...memoirePage} />}
     </section>
 }

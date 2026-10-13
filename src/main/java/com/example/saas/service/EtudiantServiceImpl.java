@@ -12,6 +12,7 @@ import com.example.saas.tenant.TenantProvider;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,17 +35,20 @@ public class EtudiantServiceImpl implements EtudiantService {
     private final EtudiantRepository etudiants;
     private final TenantProvider tenant;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public EtudiantServiceImpl(
             TenantUserRepository users,
             EtudiantRepository etudiants,
             TenantProvider tenant,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JdbcTemplate jdbcTemplate) {
         this.users = users;
         this.etudiants = etudiants;
         this.tenant = tenant;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -102,6 +106,23 @@ public class EtudiantServiceImpl implements EtudiantService {
         }
         user.setEnabled(false);
         return toResponse(etudiant);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        String tenantId = tenant.currentTenant();
+        Etudiant etudiant = etudiants.findByIdAndUtilisateur_TenantId(id, tenantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Étudiant introuvable"));
+        if (!ROLE.equals(etudiant.getUtilisateur().getRole())) {
+            throw new ResourceNotFoundException("Étudiant introuvable");
+        }
+
+        jdbcTemplate.update("DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
+        jdbcTemplate.update("DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
+        jdbcTemplate.update("DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
+        jdbcTemplate.update("UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
+        jdbcTemplate.update("UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
+        users.delete(etudiant.getUtilisateur());
     }
 
     @Override

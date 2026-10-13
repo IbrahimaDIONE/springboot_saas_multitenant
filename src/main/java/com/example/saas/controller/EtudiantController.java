@@ -50,4 +50,10 @@ public class EtudiantController {
     public EtudiantResponse deactivate(@PathVariable UUID id) {
         return service.deactivate(id);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID id) {
+        service.delete(id);
+    }
 }

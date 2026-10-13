@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, FileSpreadsheet, Plus, RotateCcw, Search, UserRound, UserRoundX, X } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './admin.css'
 
 const emptyStudent = { username: '', password: '', nom: '', prenom: '', email: '', filiereId: '', niveauId: '' }
@@ -56,6 +58,7 @@ export default function StudentManagementPage() {
     return students.filter((student) => [student.nom, student.prenom, student.username, student.email]
       .some((value) => value?.toLocaleLowerCase().includes(term)))
   }, [students, search])
+  const studentPage = usePagination(visibleStudents)
 
   async function handleCreate(event) {
     event.preventDefault()
@@ -123,6 +126,25 @@ export default function StudentManagementPage() {
     }
   }
 
+  async function deleteStudent(student) {
+    const confirmed = window.confirm(
+      `Supprimer définitivement le compte de ${student.prenom} ${student.nom} ? Ses informations personnelles, notifications, favoris et consultations seront supprimés. Ses emprunts et pénalités seront conservés sans identité.`
+    )
+    if (!confirmed) return
+    setChangingStudentId(student.id)
+    setActionError('')
+    setNotice('')
+    try {
+      await api.delete(`/api/etudiants/${student.id}`)
+      setNotice(`Le compte de ${student.prenom} ${student.nom} a été supprimé. Son historique d’emprunts et de pénalités est anonymisé.`)
+      setRetryVersion((version) => version + 1)
+    } catch (requestError) {
+      setActionError(errorMessage(requestError, 'Impossible de supprimer ce compte étudiant.'))
+    } finally {
+      setChangingStudentId('')
+    }
+  }
+
   return <section className="content admin-page">
     <header className="admin-heading">
       <span className="eyebrow">ADMINISTRATION DE L’ÉTABLISSEMENT</span>
@@ -172,7 +194,7 @@ export default function StudentManagementPage() {
     {!loading && error && <div className="admin-state admin-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && visibleStudents.length === 0 && <div className="admin-state"><UserRound size={23} /><h2>{search ? 'Aucun étudiant trouvé' : 'Aucun étudiant'}</h2><p>{search ? 'Essayez un autre terme de recherche.' : 'Les étudiants de votre établissement apparaîtront ici.'}</p></div>}
     {!loading && !error && visibleStudents.length > 0 && <div className="admin-record-list">
-      {visibleStudents.map((student) => <article className="admin-record" key={student.id}>
+      {studentPage.items.map((student) => <article className="admin-record" key={student.id}>
         <div className="admin-record-main">
           <span className={`admin-status ${student.enabled ? 'admin-status-enabled' : 'admin-status-disabled'}`}>{student.enabled ? 'Compte actif' : 'Compte désactivé'}</span>
           <h2>{student.prenom} {student.nom}</h2>
@@ -183,9 +205,13 @@ export default function StudentManagementPage() {
           <button className={student.enabled ? 'danger-button' : 'secondary-button'} onClick={() => toggleStudent(student)} disabled={changingStudentId === student.id}>
             {student.enabled ? <><UserRoundX size={15} />Désactiver</> : <><Check size={15} />Activer</>}
           </button>
+          <button className="danger-button" onClick={() => deleteStudent(student)} disabled={changingStudentId === student.id}>
+            <UserRoundX size={15} />Supprimer
+          </button>
         </div>
       </article>)}
     </div>}
+    {!loading && !error && <PaginationControls {...studentPage} />}
   </section>
 }
 

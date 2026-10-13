@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, RotateCcw, CheckCircle } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 export default function EmpruntsAdminPage() {
     const [retryVersion, setRetryVersion] = useState(0)
@@ -9,6 +11,7 @@ export default function EmpruntsAdminPage() {
     const [statut, setStatut] = useState('')
     const requestKey = String(retryVersion) + statut
     const emprunts = result.key === requestKey ? result.emprunts : []
+    const empruntsPage = usePagination(emprunts)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -91,7 +94,7 @@ export default function EmpruntsAdminPage() {
                     </tr>
                     </thead>
                     <tbody>
-                    {emprunts.map(emprunt => (
+                    {empruntsPage.items.map(emprunt => (
                         <tr key={emprunt.id}>
                             <td data-label="Ouvrage">{emprunt.titreOuvrage}</td>
                             <td data-label="Étudiant">{[emprunt.etudiantPrenom, emprunt.etudiantNom].filter(Boolean).join(' ') || '—'}</td>
@@ -120,5 +123,6 @@ export default function EmpruntsAdminPage() {
                 </table>
             </div>
         )}
+        {!loading && !error && <PaginationControls {...empruntsPage} />}
     </section>
 }

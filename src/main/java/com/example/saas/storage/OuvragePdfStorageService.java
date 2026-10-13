@@ -11,6 +11,9 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.LinkOption;
+import java.util.Comparator;
+import java.util.stream.Stream;
 import java.util.UUID;
 
 @Service
@@ -73,6 +76,20 @@ public class OuvragePdfStorageService {
             return Files.readAllBytes(file);
         } catch (IOException e) {
             throw new IllegalStateException("Impossible de lire le PDF de l’ouvrage", e);
+        }
+    }
+
+    public void delete(String tenantId, UUID ouvrageId) {
+        Path directory = directory(tenantId, ouvrageId);
+        if (!Files.exists(directory, LinkOption.NOFOLLOW_LINKS)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.delete(path);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Impossible de supprimer le PDF de l’ouvrage", e);
         }
     }
 

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Heart, RotateCcw, Trash2 } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './favorites.css'
 
 const typeLabels = { OUVRAGE: 'Ouvrage', MEMOIRE: 'Mémoire' }
@@ -14,6 +16,7 @@ export default function FavoritesPage() {
     const [removingId, setRemovingId] = useState('')
     const requestKey = String(retryVersion)
     const favoris = result.key === requestKey ? result.favoris : []
+    const favoritesPage = usePagination(favoris)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -41,12 +44,13 @@ export default function FavoritesPage() {
         {loading && <div className="catalog-state" role="status">Chargement de vos favoris…</div>}
         {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
         {!loading && !error && favoris.length === 0 && <div className="catalog-state"><Heart size={24} /><h2>Aucun favori</h2><p>Ajoutez un ouvrage ou un mémoire à vos favoris depuis le catalogue, les mémoires ou la fiche détail.</p></div>}
-        {!loading && !error && favoris.length > 0 && <div className="loans-list">{favoris.map((favori) => <article className="loan-item" key={favori.id}>
+        {!loading && !error && favoris.length > 0 && <div className="loans-list">{favoritesPage.items.map((favori) => <article className="loan-item" key={favori.id}>
             <div className="loan-book-icon"><Heart size={18} /></div>
             <div className="loan-book-info"><h2>{favori.titre}</h2></div>
             <span className="favorite-type">{typeLabels[favori.typeRessource] || favori.typeRessource}</span>
             <Link className="details-link" to={`${typeLinks[favori.typeRessource] || '/app/etudiant'}/${favori.ressourceId}`}>Voir la fiche<ArrowRight size={15} /></Link>
             <button className="secondary-button favorite-remove" onClick={() => removeFavori(favori.id)} disabled={removingId === favori.id}><Trash2 size={14} />{removingId === favori.id ? 'Retrait…' : 'Retirer'}</button>
         </article>)}</div>}
+        {!loading && !error && <PaginationControls {...favoritesPage} />}
     </section>
 }

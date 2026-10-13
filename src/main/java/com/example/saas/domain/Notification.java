@@ -1,6 +1,7 @@
 package com.example.saas.domain;
 
 import jakarta.persistence.*;
+import java.util.UUID;
 
 /**
  * Notification interne envoyée à un étudiant.
@@ -31,17 +32,26 @@ public class Notification extends BaseTenantEntity {
     @Column(nullable = false)
     private boolean lu = false;
 
+    @Column(name = "group_id", nullable = false, updatable = false)
+    private UUID groupId;
+
     protected Notification() {}
 
     public Notification(String tenantId, Etudiant etudiant,
                         String message, Type type) {
+        this(tenantId, etudiant, message, type, UUID.randomUUID());
+    }
+
+    public Notification(String tenantId, Etudiant etudiant,
+                        String message, Type type, UUID groupId) {
         super(tenantId);
-        if (etudiant == null || message == null || message.isBlank() || type == null)
+        if (etudiant == null || message == null || message.isBlank() || type == null || groupId == null)
             throw new IllegalArgumentException("Notification invalide");
         this.etudiant = etudiant;
         this.message  = message;
         this.type     = type;
         this.lu       = false;
+        this.groupId = groupId;
     }
 
     public void marquerLu() { this.lu = true; }
@@ -50,4 +60,5 @@ public class Notification extends BaseTenantEntity {
     public String   getMessage()  { return message; }
     public Type     getType()     { return type; }
     public boolean  isLu()       { return lu; }
+    public UUID getGroupId() { return groupId; }
 }

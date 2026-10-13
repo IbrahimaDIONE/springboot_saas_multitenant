@@ -8,11 +8,12 @@ import org.springframework.stereotype.Component;
 public class EmpruntMapper {
 
     public EmpruntResponse toResponse(Emprunt e) {
+        var etudiant = e.getEtudiant();
         return new EmpruntResponse(
                 e.getId(),
-            e.getEtudiant().getId(),
-            e.getEtudiant().getUtilisateur().getPrenom(),
-            e.getEtudiant().getUtilisateur().getNom(),
+            etudiant == null ? null : etudiant.getId(),
+            etudiant == null ? null : etudiant.getUtilisateur().getPrenom(),
+            etudiant == null ? null : etudiant.getUtilisateur().getNom(),
                 e.getOuvrage().getId(),
                 e.getOuvrage().getTitre(),
                 e.getOuvrage().getAuteur(),

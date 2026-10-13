@@ -10,6 +10,7 @@ public class NotificationMapper {
     public NotificationResponse toResponse(Notification n) {
         return new NotificationResponse(
                 n.getId(),
+                n.getGroupId(),
                 n.getEtudiant().getId(),
                 n.getEtudiant().getUtilisateur().getPrenom(),
                 n.getEtudiant().getUtilisateur().getNom(),

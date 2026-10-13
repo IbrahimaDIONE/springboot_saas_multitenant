@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Check, Pencil, Plus, RotateCcw, Tags, Trash2, X } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 import './admin.css'
 
 const referenceTypes = [
@@ -78,7 +80,10 @@ export default function ReferenceManagementPage() {
   }
 
   async function deleteReference(type, item) {
-    if (!window.confirm(`Supprimer « ${item.nom} » ? Les ressources qui utilisent cette valeur peuvent empêcher la suppression.`)) return
+    const confirmation = type.key === 'filieres'
+      ? `Supprimer « ${item.nom} » ? Les étudiants seront dissociés de cette filière et les ouvrages, mémoires, emprunts, pénalités et fichiers associés seront définitivement supprimés.`
+      : `Supprimer « ${item.nom} » ? Les ressources qui utilisent cette valeur peuvent empêcher la suppression.`
+    if (!window.confirm(confirmation)) return
     setBusy(`${type.key}-${item.id}`)
     setActionError('')
     setNotice('')
@@ -128,19 +133,35 @@ export default function ReferenceManagementPage() {
           </button>
           {editing?.key === type.key && <button className="icon-button" type="button" aria-label="Annuler la modification" onClick={cancelEdit}><X size={16} /></button>}
         </form>
-        <ul className="admin-reference-list">
-          {references[type.key].map((item) => <li key={item.id}>
-            {editing?.id === item.id
-              ? <span className="admin-reference-editing">Modification en cours</span>
-              : <span>{item.nom}</span>}
-            <span className="admin-reference-actions">
-              <button className="icon-button" type="button" aria-label={`Modifier ${item.nom}`} onClick={() => { setEditing({ key: type.key, id: item.id, value: item.nom }); setActionError('') }}><Pencil size={15} /></button>
-              <button className="icon-button danger-icon" type="button" aria-label={`Supprimer ${item.nom}`} onClick={() => deleteReference(type, item)} disabled={busy === `${type.key}-${item.id}`}><Trash2 size={15} /></button>
-            </span>
-          </li>)}
-          {references[type.key].length === 0 && <li className="admin-reference-empty">Aucune entrée pour le moment.</li>}
-        </ul>
+        <ReferenceItems
+          items={references[type.key]}
+          editing={editing}
+          type={type}
+          busy={busy}
+          onEdit={(item) => { setEditing({ key: type.key, id: item.id, value: item.nom }); setActionError('') }}
+          onDelete={(item) => deleteReference(type, item)}
+        />
       </section>)}
     </div>}
   </section>
+}
+
+function ReferenceItems({ items, editing, type, busy, onEdit, onDelete }) {
+  const page = usePagination(items)
+
+  return <>
+    <ul className="admin-reference-list">
+      {page.items.map((item) => <li key={item.id}>
+        {editing?.id === item.id
+          ? <span className="admin-reference-editing">Modification en cours</span>
+          : <span>{item.nom}</span>}
+        <span className="admin-reference-actions">
+          <button className="icon-button" type="button" aria-label={`Modifier ${item.nom}`} onClick={() => onEdit(item)}><Pencil size={15} /></button>
+          <button className="icon-button danger-icon" type="button" aria-label={`Supprimer ${item.nom}`} onClick={() => onDelete(item)} disabled={busy === `${type.key}-${item.id}`}><Trash2 size={15} /></button>
+        </span>
+      </li>)}
+      {items.length === 0 && <li className="admin-reference-empty">Aucune entrée pour le moment.</li>}
+    </ul>
+    <PaginationControls {...page} />
+  </>
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { ShieldCheck, RotateCcw, Plus, Pencil, Trash2, X } from 'lucide-react'
 import { api } from '../../api/client.js'
+import { PaginationControls } from '../../components/Pagination.jsx'
+import { usePagination } from '../../components/usePagination.js'
 
 const emptyForm = { code: '', description: '', actif: true }
 
@@ -10,6 +12,7 @@ export default function RolesAdminPage() {
     const [failure, setFailure] = useState({ key: '', message: '' })
     const requestKey = String(retryVersion)
     const roles = result.key === requestKey ? result.roles : []
+    const rolesPage = usePagination(roles)
     const loading = result.key !== requestKey && failure.key !== requestKey
     const error = failure.key === requestKey ? failure.message : ''
 
@@ -169,7 +172,7 @@ export default function RolesAdminPage() {
                         <tr><th>Code</th><th>Description</th><th>Statut</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
-                        {roles.map(role => (
+                        {rolesPage.items.map(role => (
                             <tr key={role.id}>
                                 <td><span className="badge">{role.code}</span></td>
                                 <td>{role.description || '—'}</td>
@@ -192,6 +195,7 @@ export default function RolesAdminPage() {
                     </table>
                 </div>
             )}
+            {!loading && !error && <PaginationControls {...rolesPage} />}
         </div>
     </section>
 }

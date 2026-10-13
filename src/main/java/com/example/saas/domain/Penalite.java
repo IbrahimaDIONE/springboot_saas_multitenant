@@ -11,8 +11,8 @@ import java.time.Instant;
 @Table(name = "penalites")
 public class Penalite extends BaseTenantEntity {
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "etudiant_id", nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "etudiant_id", updatable = false)
     private Etudiant etudiant;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
