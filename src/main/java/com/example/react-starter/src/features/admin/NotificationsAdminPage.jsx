@@ -22,6 +22,8 @@ export default function NotificationsAdminPage() {
     const filteredNotifications = typeFilter === 'TOUTES'
         ? notifications
         : notifications.filter((notification) => notification.type === typeFilter)
+    const readCount = notifications.filter((notification) => notification.lu).length
+    const unreadCount = notifications.length - readCount
 
     useEffect(() => {
         const controller = new AbortController()
@@ -59,6 +61,9 @@ export default function NotificationsAdminPage() {
                 </div>
                 <span className="notification-count">{filteredNotifications.length} notification(s)</span>
             </div>
+            <p className="notification-count" role="status">
+                {readCount} lue(s) · {unreadCount} non lue(s) sur {notifications.length} notification(s) envoyée(s)
+            </p>
 
             {loading && (
                 <div className="catalog-state" role="status">
@@ -96,25 +101,30 @@ export default function NotificationsAdminPage() {
                     <table>
                         <thead>
                         <tr>
-                            <th>Étudiant</th>
+                            <th>Élève destinataire</th>
                             <th>Type</th>
                             <th>Message</th>
-                            <th>Lu</th>
-                            <th>Date</th>
+                            <th>État de lecture</th>
+                            <th>Date d’envoi</th>
                         </tr>
                         </thead>
                         <tbody>
                         {filteredNotifications.map(notif => (
                             <tr key={notif.id}>
-                                <td data-label="Étudiant">{notif.etudiantId}</td>
+                                <td data-label="Élève destinataire">
+                                    <span className="notification-recipient">
+                                        <strong>{[notif.etudiantPrenom, notif.etudiantNom].filter(Boolean).join(' ') || 'Élève'}</strong>
+                                        {notif.etudiantUsername && <small className="notification-recipient-username">{notif.etudiantUsername}</small>}
+                                    </span>
+                                </td>
                                 <td data-label="Type">
                     <span className={`badge badge--${notif.type.toLowerCase()}`}>
                       {notif.type}
                     </span>
                                 </td>
                                 <td data-label="Message">{notif.message}</td>
-                                <td data-label="Lu">{notif.lu ? 'Oui' : 'Non'}</td>
-                                <td data-label="Date">{new Date(notif.createdAt).toLocaleDateString('fr-FR')}</td>
+                                <td data-label="État de lecture">{notif.lu ? 'Lue' : 'Non lue'}</td>
+                                <td data-label="Date d’envoi">{new Date(notif.createdAt).toLocaleString('fr-FR')}</td>
                             </tr>
                         ))}
                         </tbody>

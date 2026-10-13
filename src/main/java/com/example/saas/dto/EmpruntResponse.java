@@ -6,6 +6,8 @@ import java.util.UUID;
 public record EmpruntResponse(
         UUID    id,
         UUID    etudiantId,
+        String  etudiantPrenom,
+        String  etudiantNom,
         UUID    ouvrageId,
         String  titreOuvrage,
         String  auteurOuvrage,

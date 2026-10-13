@@ -142,6 +142,9 @@
 .form-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
 .notifications-list-section{margin-top:31px}
 .notifications-list-section+.notifications-list-section{margin-top:38px;padding-top:29px;border-top:1px solid var(--line)}
+.notifications-admin-page .notification-count{color:#78847d;font-size:10px}
+.notification-recipient{display:grid;gap:3px}
+.notification-recipient-username{color:#849087;font-size:9px}
 .emprunts-table{width:100%;overflow:auto;margin-top:14px;border:1px solid #e3e8e3;border-radius:5px;background:#fff}
 .emprunts-table table{width:100%;border-collapse:collapse;text-align:left}
 .emprunts-table th{padding:12px 14px;border-bottom:1px solid #e8ece8;background:#f7f8f6;color:#77847c;font-size:9px;font-weight:700;letter-spacing:.35px;text-transform:uppercase;white-space:nowrap}

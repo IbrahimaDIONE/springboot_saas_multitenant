@@ -83,7 +83,7 @@ export default function EmpruntsAdminPage() {
                     <thead>
                     <tr>
                         <th>Ouvrage</th>
-                        <th>Etudiant</th>
+                        <th>Étudiant</th>
                         <th>Date emprunt</th>
                         <th>Date expiration</th>
                         <th>Statut</th>
@@ -94,7 +94,7 @@ export default function EmpruntsAdminPage() {
                     {emprunts.map(emprunt => (
                         <tr key={emprunt.id}>
                             <td data-label="Ouvrage">{emprunt.titreOuvrage}</td>
-                            <td data-label="Étudiant">{emprunt.etudiantId || '—'}</td>
+                            <td data-label="Étudiant">{[emprunt.etudiantPrenom, emprunt.etudiantNom].filter(Boolean).join(' ') || '—'}</td>
                             <td data-label="Date emprunt">{new Date(emprunt.dateEmprunt).toLocaleDateString('fr-FR')}</td>
                             <td data-label="Date expiration">{new Date(emprunt.dateExpiration).toLocaleDateString('fr-FR')}</td>
                             <td data-label="Statut">

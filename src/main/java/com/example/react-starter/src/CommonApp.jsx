@@ -7,7 +7,6 @@ import BookManagementPage from './features/admin/BookManagementPage.jsx'
 import MemoireManagementPage from './features/admin/MemoireManagementPage.jsx'
 import ReferenceManagementPage from './features/admin/ReferenceManagementPage.jsx'
 import StudentManagementPage from './features/admin/StudentManagementPage.jsx'
-import DashboardPage from './features/admin/DashboardPage.jsx'
 import EmpruntsAdminPage from './features/admin/EmpruntsAdminPage.jsx'
 import NotificationsAdminPage from './features/admin/NotificationsAdminPage.jsx'
 import ReglesPenaliteAdminPage from './features/admin/ReglesPenaliteAdminPage.jsx'
@@ -58,7 +57,6 @@ const homeContent = {
       { label: 'Emprunts en retard', key: 'empruntsRetardes', color: 'alert', icon: ShieldAlert },
     ],
     actions: [
-      { label: 'Tableau de bord', detail: 'Consulter les indicateurs de la bibliothèque.', path: '/app/etablissement/dashboard', icon: ChartNoAxesColumnIncreasing },
       { label: 'Ouvrages', detail: 'Gérer le catalogue de votre établissement.', path: '/app/etablissement/ouvrages', icon: BookOpen },
       { label: 'Mémoires', detail: 'Gérer les mémoires et leurs fichiers.', path: '/app/etablissement/memoires', icon: FileText },
       { label: 'Étudiants', detail: 'Gérer les comptes et les inscriptions.', path: '/app/etablissement/etudiants', icon: Users },
@@ -113,7 +111,6 @@ function AppRoutes() {
     <Route path="/app/etablissement/memoires" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><MemoireManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/etudiants" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><StudentManagementPage /></RoleRoute>} />
     <Route path="/app/etablissement/referentiels" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><ReferenceManagementPage /></RoleRoute>} />
-    <Route path="/app/etablissement/dashboard" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><DashboardPage /></RoleRoute>} />
     <Route path="/app/etablissement/emprunts" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><EmpruntsAdminPage /></RoleRoute>} />
     <Route path="/app/etablissement/notifications" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><NotificationsAdminPage /></RoleRoute>} />
     <Route path="/app/etablissement/penalites" element={<RoleRoute role="ADMIN_ETABLISSEMENT"><ReglesPenaliteAdminPage /></RoleRoute>} />
@@ -304,7 +301,6 @@ function AppLayout({ children }) {
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/etudiants" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Users size={18} />Étudiants</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/referentiels" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Tags size={18} />Référentiels</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/documents" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><BookOpenCheck size={18} />Documents ouvrages</NavLink>}
-        {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/dashboard" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ChartNoAxesColumnIncreasing size={18} />Tableau de bord</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/emprunts" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ClipboardList size={18} />Emprunts</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/notifications" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><Bell size={18} />Notifications</NavLink>}
         {user.role === 'ADMIN_ETABLISSEMENT' && <NavLink to="/app/etablissement/penalites" className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}><ShieldAlert size={18} />Pénalités</NavLink>}
@@ -365,7 +361,6 @@ function getBreadcrumbLabel(pathname) {
   if (pathname === '/app/etudiant/memoires') return 'Mémoires'
   if (pathname.endsWith('/favoris')) return 'Mes favoris'
   if (pathname.endsWith('/historique')) return 'Mon historique'
-  if (pathname.endsWith('/dashboard')) return 'Tableau de bord'
   if (pathname.endsWith('/ouvrages')) return 'Gestion des ouvrages'
   if (pathname.endsWith('/memoires')) return 'Gestion des mémoires'
   if (pathname.endsWith('/etudiants')) return 'Gestion des étudiants'

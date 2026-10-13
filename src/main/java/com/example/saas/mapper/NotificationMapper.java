@@ -11,6 +11,9 @@ public class NotificationMapper {
         return new NotificationResponse(
                 n.getId(),
                 n.getEtudiant().getId(),
+                n.getEtudiant().getUtilisateur().getPrenom(),
+                n.getEtudiant().getUtilisateur().getNom(),
+                n.getEtudiant().getUtilisateur().getUsername(),
                 n.getMessage(),
                 n.getType().name(),
                 n.isLu(),

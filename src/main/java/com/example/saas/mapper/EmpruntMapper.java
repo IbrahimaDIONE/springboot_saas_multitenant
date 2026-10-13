@@ -11,6 +11,8 @@ public class EmpruntMapper {
         return new EmpruntResponse(
                 e.getId(),
             e.getEtudiant().getId(),
+            e.getEtudiant().getUtilisateur().getPrenom(),
+            e.getEtudiant().getUtilisateur().getNom(),
                 e.getOuvrage().getId(),
                 e.getOuvrage().getTitre(),
                 e.getOuvrage().getAuteur(),
