@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Comparator;
+import java.util.stream.Stream;
 import java.util.UUID;
 
 @Component
@@ -39,6 +41,23 @@ public class FileStorageService {
             Files.deleteIfExists(resolve(cheminRelatif));
         } catch (IOException e) {
             throw new IllegalStateException("Échec de la suppression du fichier", e);
+        }
+    }
+
+    public void deleteTenantFiles(String tenantId) {
+        Path tenantDirectory = root.resolve(tenantId).normalize();
+        if (!tenantDirectory.startsWith(root) || tenantDirectory.equals(root)) {
+            throw new IllegalArgumentException("Identifiant d'établissement invalide");
+        }
+        if (!Files.exists(tenantDirectory, LinkOption.NOFOLLOW_LINKS)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(tenantDirectory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.delete(path);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("Échec de la suppression des documents de l'établissement", e);
         }
     }
 

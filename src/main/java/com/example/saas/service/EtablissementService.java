@@ -7,6 +7,7 @@ public interface EtablissementService {
     EtablissementResponse create(EtablissementRequest request);
     List<EtablissementResponse> findAll();
     EtablissementResponse update(String code, EtablissementRequest request);
+    void delete(String code);
     EtablissementResponse setStatus(String code, String statut);
     PlateformeStatsResponse stats();
 }

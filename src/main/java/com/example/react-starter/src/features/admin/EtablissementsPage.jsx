@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Building2, RotateCcw, Plus, Power, Pencil, X, BarChart3, Users } from 'lucide-react'
+import { Building2, RotateCcw, Plus, Power, Pencil, Trash2, X, BarChart3, Users } from 'lucide-react'
 import { api } from '../../api/client.js'
 
 const emptyAdmin = { username: '', password: '', nom: '', prenom: '', email: '' }
@@ -29,6 +29,9 @@ export default function EtablissementsPage() {
     const [saving, setSaving] = useState(false)
     const [saveError, setSaveError] = useState('')
     const [saveSuccess, setSaveSuccess] = useState('')
+    const [deletingCode, setDeletingCode] = useState(null)
+    const [deleteError, setDeleteError] = useState('')
+    const [deleteSuccess, setDeleteSuccess] = useState('')
 
     useEffect(() => {
         const controller = new AbortController()
@@ -140,6 +143,25 @@ export default function EtablissementsPage() {
             setRetryVersion(v => v + 1)
         } catch (err) {
             alert(err.response?.data?.message || 'Impossible de modifier le statut.')
+        }
+    }
+
+    async function handleDelete(etablissement) {
+        const confirmation = `Supprimer définitivement ${etablissement.nom} (${etablissement.code}) ? Tous ses comptes, ouvrages, emprunts, mémoires et documents seront supprimés. Cette action est irréversible.`
+        if (!window.confirm(confirmation)) return
+
+        setDeletingCode(etablissement.code)
+        setDeleteError('')
+        setDeleteSuccess('')
+        try {
+            await api.delete(`/api/etablissements/${encodeURIComponent(etablissement.code)}`)
+            if (editingCode === etablissement.code) cancelEdit()
+            setDeleteSuccess(`L'établissement « ${etablissement.nom} » et ses données ont été supprimés.`)
+            setRetryVersion(v => v + 1)
+        } catch (err) {
+            setDeleteError(err.response?.data?.message || 'Impossible de supprimer cet établissement.')
+        } finally {
+            setDeletingCode(null)
         }
     }
 
@@ -263,6 +285,8 @@ export default function EtablissementsPage() {
 
         <div className="notifications-list-section">
             <h2>Établissements hébergés</h2>
+            {deleteError && <p className="form-notice" role="alert">{deleteError}</p>}
+            {deleteSuccess && <p className="upload-message" role="status">{deleteSuccess}</p>}
 
             {loading && <div className="catalog-state" role="status">Chargement des établissements...</div>}
 
@@ -305,6 +329,14 @@ export default function EtablissementsPage() {
                                     </button>
                                     <button className="secondary-button" onClick={() => handleToggle(etab.code, etab.statut)}>
                                         <Power size={15} />{etab.statut === 'ACTIF' ? 'Désactiver' : 'Activer'}
+                                    </button>
+                                    <button
+                                        className="icon-button danger-icon"
+                                        onClick={() => handleDelete(etab)}
+                                        aria-label={`Supprimer ${etab.nom}`}
+                                        disabled={deletingCode === etab.code}
+                                    >
+                                        <Trash2 size={15} />
                                     </button>
                                 </td>
                             </tr>

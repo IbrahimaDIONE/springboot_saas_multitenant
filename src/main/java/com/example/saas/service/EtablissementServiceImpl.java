@@ -4,10 +4,14 @@ import com.example.saas.domain.*;
 import com.example.saas.dto.*;
 import com.example.saas.exception.ResourceNotFoundException;
 import com.example.saas.repository.*;
+import com.example.saas.storage.FileStorageService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 
@@ -19,16 +23,22 @@ public class EtablissementServiceImpl implements EtablissementService {
     private final TenantUserRepository users;
     private final OuvrageRepository ouvrages;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
+    private final FileStorageService fileStorage;
 
     public EtablissementServiceImpl(
             EtablissementRepository etablissements,
             TenantUserRepository users,
             OuvrageRepository ouvrages,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JdbcTemplate jdbcTemplate,
+            FileStorageService fileStorage) {
         this.etablissements = etablissements;
         this.users = users;
         this.ouvrages = ouvrages;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
+        this.fileStorage = fileStorage;
     }
 
     @Override
@@ -62,6 +72,22 @@ public class EtablissementServiceImpl implements EtablissementService {
     }
 
     @Override
+    public void delete(String code) {
+        Etablissement etablissement = find(code);
+        String tenantId = etablissement.getCode();
+
+        deleteTenantData(tenantId);
+        etablissements.delete(etablissement);
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                fileStorage.deleteTenantFiles(tenantId);
+            }
+        });
+    }
+
+    @Override
     public EtablissementResponse setStatus(String code, String statut) {
         if (!Set.of("ACTIF", "INACTIF").contains(statut)) {
             throw new IllegalArgumentException("Statut établissement invalide");
@@ -84,6 +110,23 @@ public class EtablissementServiceImpl implements EtablissementService {
     private Etablissement find(String code) {
         return etablissements.findByCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("Etablissement introuvable"));
+    }
+
+    private void deleteTenantData(String tenantId) {
+        jdbcTemplate.update("DELETE FROM notifications WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM penalites WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM favoris WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM consultations WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM emprunts WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM fichiers WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM memoires WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM ouvrages WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM categories WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM filieres WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM niveaux WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM regles_penalite WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM projects WHERE tenant_id = ?", tenantId);
+        jdbcTemplate.update("DELETE FROM app_users WHERE tenant_id = ?", tenantId);
     }
 
     private EtablissementResponse toResponse(Etablissement e) {

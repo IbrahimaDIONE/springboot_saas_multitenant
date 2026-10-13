@@ -35,6 +35,12 @@ public class EtablissementController {
         return service.update(code, request);
     }
 
+    @DeleteMapping("/{code}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String code) {
+        service.delete(code);
+    }
+
     @PatchMapping("/{code}/statut")
     public EtablissementResponse status(@PathVariable String code, @RequestParam String valeur) {
         return service.setStatus(code, valeur);
