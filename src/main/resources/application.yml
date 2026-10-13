@@ -11,8 +11,8 @@ spring:
   flyway.out-of-order: true
   servlet:
     multipart:
-      max-file-size: 20MB
-      max-request-size: 21MB
+      max-file-size: 50MB
+      max-request-size: 51MB
 management.endpoints.web.exposure.include: health,info
 server.port: ${PORT:8081}
 app:

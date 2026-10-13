@@ -120,7 +120,7 @@ public class GlobalExceptionHandler {
                 return build(
                                 HttpStatus.PAYLOAD_TOO_LARGE,
                                 "FILE_TOO_LARGE",
-                                "Le fichier ne peut pas dépasser 20 Mo.",
+                                "Le fichier ne peut pas dépasser 50 Mo.",
                                 request,
                                 Map.of());
         }

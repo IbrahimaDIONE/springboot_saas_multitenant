@@ -23,7 +23,7 @@ export default function BookPdfManagementPage() {
 
   return <section className="content book-files-page">
     <div className="book-files-heading"><span className="eyebrow">ADMINISTRATION DE L’ÉTABLISSEMENT</span><h1>Documents des ouvrages</h1><p>Téléversez le PDF qui sera disponible à la lecture après un emprunt actif.</p></div>
-    <div className="book-files-security"><FileUp size={18} /><span>PDF uniquement, 20 Mo maximum. La lecture reste réservée à l’étudiant ayant emprunté l’ouvrage.</span></div>
+    <div className="book-files-security"><FileUp size={18} /><span>PDF uniquement, 50 Mo maximum. La lecture reste réservée à l’étudiant ayant emprunté l’ouvrage.</span></div>
     {loading && <div className="catalog-state" role="status">Chargement des ouvrages…</div>}
     {!loading && error && <div className="catalog-state catalog-state-error" role="alert"><p>{error}</p><button className="secondary-button" onClick={() => setRetryVersion((version) => version + 1)}><RotateCcw size={15} />Réessayer</button></div>}
     {!loading && !error && books.length === 0 && <div className="catalog-state"><LibraryBig size={24} /><h2>Aucun ouvrage actif</h2><p>Les ouvrages de votre établissement apparaîtront ici.</p></div>}
@@ -43,8 +43,8 @@ function BookPdfRow({ book }) {
     if (!file) return
     setError('')
     setMessage('')
-    if (file.size > 20 * 1024 * 1024) {
-      setError('Le PDF ne peut pas dépasser 20 Mo.')
+    if (file.size > 50 * 1024 * 1024) {
+      setError('Le PDF ne peut pas dépasser 50 Mo.')
       return
     }
     if (!file.name.toLowerCase().endsWith('.pdf')) {

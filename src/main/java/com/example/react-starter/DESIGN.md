@@ -65,7 +65,7 @@ Une bibliothèque universitaire contemporaine, éditoriale et accueillante. L'in
 
 ## Limite de cette référence
 
-L’administration des documents est réservée à l’admin établissement. Le téléchargement PDF est servi après vérification du tenant, du propriétaire et de l’emprunt actif ; un ouvrage sans fichier présente un état indisponible. Le serveur contrôle le type PDF et limite les fichiers à 20 Mo.
+L’administration des documents est réservée à l’admin établissement. Le téléchargement PDF est servi après vérification du tenant, du propriétaire et de l’emprunt actif ; un ouvrage sans fichier présente un état indisponible. Le serveur contrôle le type PDF et limite les fichiers à 50 Mo.
 
 Les ouvrages et mémoires déclenchent une notification pour les étudiants actifs du même tenant, de la même filière et du même niveau. Les rappels, avertissements et pénalités suivent les échéances et les règles de l'établissement. Les notifications sont internes à l'application ; aucun envoi e-mail ou SMS n'est défini.
 

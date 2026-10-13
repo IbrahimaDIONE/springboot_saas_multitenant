@@ -55,13 +55,28 @@ class OuvragePdfStorageServiceTest {
     }
 
     @Test
+    void acceptsFilesAtThe50MbLimit() throws Exception {
+        UUID bookId = UUID.randomUUID();
+        MultipartFile upload = mock(MultipartFile.class);
+        when(upload.isEmpty()).thenReturn(false);
+        when(upload.getSize()).thenReturn(50L * 1024 * 1024);
+        when(upload.getInputStream()).thenReturn(new java.io.ByteArrayInputStream(
+                "%PDF-1.7\nexample".getBytes(StandardCharsets.US_ASCII)));
+
+        String key = storage.store("tenant-a", bookId, upload);
+
+        assertEquals("tenant-a/" + bookId + "/document.pdf", key);
+    }
+
+    @Test
     void rejectsOversizedFilesBeforeOpeningTheirStream() throws Exception {
         MultipartFile upload = mock(MultipartFile.class);
         when(upload.isEmpty()).thenReturn(false);
-        when(upload.getSize()).thenReturn(20L * 1024 * 1024 + 1);
+        when(upload.getSize()).thenReturn(50L * 1024 * 1024 + 1);
 
-        assertThrows(IllegalArgumentException.class,
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> storage.store("tenant-a", UUID.randomUUID(), upload));
+        assertEquals("Le fichier PDF ne peut pas dépasser 50 Mo.", exception.getMessage());
         verify(upload, never()).getInputStream();
     }
 }

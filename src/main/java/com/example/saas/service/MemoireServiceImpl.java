@@ -29,6 +29,7 @@ import com.example.saas.tenant.TenantProvider;
 @Service
 @Transactional
 public class MemoireServiceImpl implements MemoireService {
+    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
     private final MemoireRepository repository;
     private final MemoireMapper mapper;
     private final FichierRepository fichierRepository;
@@ -106,6 +107,8 @@ public class MemoireServiceImpl implements MemoireService {
     public FichierResponse ajouterFichier(UUID memoireId, MultipartFile file) {
         Memoire memoire = findEntity(memoireId);
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("Fichier vide");
+        if (file.getSize() > MAX_FILE_SIZE)
+            throw new IllegalArgumentException("Le fichier PDF ne peut pas dépasser 20 Mo.");
         if (!estUnPdf(file))
             throw new IllegalArgumentException("Seuls les fichiers PDF sont acceptés");
         String chemin = storage.store(tenant(), memoireId, file);

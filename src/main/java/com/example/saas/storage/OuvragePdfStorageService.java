@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Service
 public class OuvragePdfStorageService {
-    private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
+    private static final long MAX_FILE_SIZE = 50L * 1024 * 1024;
     private static final String FILE_NAME = "document.pdf";
 
     private final Path root;
@@ -81,7 +81,7 @@ public class OuvragePdfStorageService {
             throw new IllegalArgumentException("Sélectionnez un fichier PDF.");
         }
         if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("Le fichier PDF ne peut pas dépasser 20 Mo.");
+            throw new IllegalArgumentException("Le fichier PDF ne peut pas dépasser 50 Mo.");
         }
         try (InputStream input = file.getInputStream()) {
             byte[] signature = input.readNBytes(5);
