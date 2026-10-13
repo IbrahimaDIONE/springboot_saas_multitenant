@@ -49,7 +49,7 @@ public class DatabaseUserDetailsService implements UserDetailsService {
             return true;
         }
 
-        return etablissements.findByCode(institutionCode(user.getTenantId()))
+        return etablissements.findByCodeIgnoreCase(institutionCode(user.getTenantId()))
                 .map(etablissement -> "ACTIF".equals(etablissement.getStatut()))
                 .orElse(false);
     }

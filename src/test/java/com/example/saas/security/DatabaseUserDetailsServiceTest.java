@@ -33,8 +33,6 @@ class DatabaseUserDetailsServiceTest {
 
         when(repository.findByUsernameIgnoreCase("ibzodione20@gmail.com"))
                 .thenReturn(Optional.of(admin));
-        when(etablissements.findByCode("tenant-platform")).thenReturn(Optional.empty());
-
         UserDetails user =
                 new DatabaseUserDetailsService(repository, etablissements)
                         .loadUserByUsername("ibzodione20@gmail.com");
@@ -54,13 +52,33 @@ class DatabaseUserDetailsServiceTest {
 
         when(repository.findByUsernameIgnoreCase("direction@ipd.sn"))
                 .thenReturn(Optional.of(admin));
-        when(etablissements.findByCode("IPD"))
+        when(etablissements.findByCodeIgnoreCase("IPD"))
                 .thenReturn(Optional.of(new Etablissement("IPD", "Institut", "ACTIF", Map.of())));
 
         UserDetails user = new DatabaseUserDetailsService(repository, etablissements)
                 .loadUserByUsername("direction@ipd.sn");
 
         assertEquals("direction@ipd.sn", user.getUsername());
+        assertTrue(user.isEnabled());
+    }
+
+    @Test
+    void loadUserByUsername_acceptsLowercaseCodeForNewInstitutionAdmin() {
+        TenantUserRepository repository = mock(TenantUserRepository.class);
+        EtablissementRepository etablissements = mock(EtablissementRepository.class);
+        TenantUser admin = TenantUser.newAdminEtablissement(
+                "ipd-test", "admin@ipd-test.sn", "{bcrypt}$2b$10$dummy", "Diallo", "Awa",
+                "admin@ipd-test.sn", "ADMIN_ETABLISSEMENT");
+
+        when(repository.findByUsernameIgnoreCase("admin@ipd-test.sn"))
+                .thenReturn(Optional.of(admin));
+        when(etablissements.findByCodeIgnoreCase("IPD-TEST"))
+                .thenReturn(Optional.of(new Etablissement("ipd-test", "Institut test", "ACTIF", Map.of())));
+
+        UserDetails user = new DatabaseUserDetailsService(repository, etablissements)
+                .loadUserByUsername("admin@ipd-test.sn");
+
+        assertEquals("admin@ipd-test.sn", user.getUsername());
         assertTrue(user.isEnabled());
     }
 }

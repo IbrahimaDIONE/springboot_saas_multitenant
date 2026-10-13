@@ -7,5 +7,6 @@ import java.util.*;
 
 public interface EtablissementRepository extends JpaRepository<Etablissement, UUID> {
     Optional<Etablissement> findByCode(String code);
+    Optional<Etablissement> findByCodeIgnoreCase(String code);
     boolean existsByCode(String code);
 }
