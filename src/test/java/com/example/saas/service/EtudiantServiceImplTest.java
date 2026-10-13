@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -119,14 +120,31 @@ class EtudiantServiceImplTest {
         Etudiant etudiant = new Etudiant(student);
         when(etudiants.findByIdAndUtilisateur_TenantId(etudiant.getId(), "tenant-b"))
                 .thenReturn(Optional.of(etudiant));
+        when(jdbcTemplate.update(anyString(), any(Object[].class))).thenReturn(1);
 
         service.delete(etudiant.getId());
 
-        verify(jdbcTemplate).update("DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
-        verify(jdbcTemplate).update("DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
-        verify(jdbcTemplate).update("DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
-        verify(jdbcTemplate).update("UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
-        verify(jdbcTemplate).update("UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", "tenant-b", etudiant.getId());
-        verify(users).delete(student);
+        verify(jdbcTemplate).update(
+                "DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?",
+                "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update(
+                "DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?",
+                "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update(
+                "DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?",
+                "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update(
+                "UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?",
+                "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update(
+                "UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?",
+                "tenant-b", etudiant.getId());
+        verify(jdbcTemplate).update(
+                "DELETE FROM etudiants WHERE id = ? AND utilisateur_id = ? " +
+                        "AND EXISTS (SELECT 1 FROM app_users WHERE id = ? AND tenant_id = ? AND role = ?)",
+                etudiant.getId(), student.getId(), student.getId(), "tenant-b", "ETUDIANT");
+        verify(jdbcTemplate).update(
+                "DELETE FROM app_users WHERE id = ? AND tenant_id = ? AND role = ?",
+                student.getId(), "tenant-b", "ETUDIANT");
     }
 }

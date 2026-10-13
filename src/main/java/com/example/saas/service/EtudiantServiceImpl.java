@@ -117,12 +117,35 @@ public class EtudiantServiceImpl implements EtudiantService {
             throw new ResourceNotFoundException("Étudiant introuvable");
         }
 
-        jdbcTemplate.update("DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
-        jdbcTemplate.update("DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
-        jdbcTemplate.update("DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
-        jdbcTemplate.update("UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
-        jdbcTemplate.update("UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?", tenantId, id);
-        users.delete(etudiant.getUtilisateur());
+        jdbcTemplate.update(
+                "DELETE FROM notifications WHERE tenant_id = ? AND etudiant_id = ?",
+                tenantId, id);
+        jdbcTemplate.update(
+                "DELETE FROM favoris WHERE tenant_id = ? AND etudiant_id = ?",
+                tenantId, id);
+        jdbcTemplate.update(
+                "DELETE FROM consultations WHERE tenant_id = ? AND etudiant_id = ?",
+                tenantId, id);
+        jdbcTemplate.update(
+                "UPDATE emprunts SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?",
+                tenantId, id);
+        jdbcTemplate.update(
+                "UPDATE penalites SET etudiant_id = NULL WHERE tenant_id = ? AND etudiant_id = ?",
+                tenantId, id);
+
+        int deletedStudent = jdbcTemplate.update(
+                "DELETE FROM etudiants WHERE id = ? AND utilisateur_id = ? " +
+                        "AND EXISTS (SELECT 1 FROM app_users WHERE id = ? AND tenant_id = ? AND role = ?)",
+                id, etudiant.getUtilisateur().getId(), etudiant.getUtilisateur().getId(), tenantId, ROLE);
+        if (deletedStudent != 1) {
+            throw new IllegalStateException("Impossible de supprimer l'enregistrement de l'étudiant");
+        }
+        int deletedUser = jdbcTemplate.update(
+                "DELETE FROM app_users WHERE id = ? AND tenant_id = ? AND role = ?",
+                etudiant.getUtilisateur().getId(), tenantId, ROLE);
+        if (deletedUser != 1) {
+            throw new IllegalStateException("Impossible de supprimer le compte de l'étudiant");
+        }
     }
 
     @Override
